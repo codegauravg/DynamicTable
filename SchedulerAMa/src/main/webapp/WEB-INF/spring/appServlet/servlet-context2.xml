@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <beans:beans xmlns="http://www.springframework.org/schema/mvc"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:tx="http://www.springframework.org/schema/tx"
@@ -44,7 +45,15 @@
     <beans:bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
         <beans:property name="dataSource" ref="dataSource" />
         <!-- This will scan the package for @Entity annotated classes. Optionally you can list those classes manually. -->
-        <beans:property name="packagesToScan" value="org.ACMSviet.SchedulerAMa.Models" /> 
+        <beans:property name="packagesToScan">
+        	<beans:array>
+        		<beans:value>org.ACMSviet.SchedulerAMa.Models</beans:value>
+        		<beans:value>org.ACMSviet.SchedulerAMa.Models.submodels</beans:value>
+        	</beans:array>
+        </beans:property>  
+        
+
+        
         <beans:property name="hibernateProperties">
             <beans:props>
                 <beans:prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</beans:prop>
@@ -69,6 +78,6 @@
  
 
  	<!-- Spring searches for @Services and @Repository annotations to instantiate and autowire beans. -->
-    <context:component-scan base-package="package to scan for entity services." />
+    <context:component-scan base-package="org.ACMSviet.SchedulerAMa.Services" />
 	
 </beans:beans>

@@ -1,6 +1,9 @@
 package org.ACMSviet.SchedulerAMa.Models.submodels;
 
-public class temp_course {
+import javax.persistence.Embeddable;
+
+@Embeddable
+public class Temp_Course {
 
 	private int temp_cor_mod_id;
 	private String temp_cor_name;									//temporary course name 

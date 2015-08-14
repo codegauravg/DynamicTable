@@ -1,7 +1,9 @@
 package org.ACMSviet.SchedulerAMa.Models.submodels;
 
+import javax.persistence.Embeddable;
 
-public class course {
+@Embeddable
+public class Course {
 
 	private String cor_name;						//course name 
 	private String cor_description;					//course description
