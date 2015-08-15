@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -28,7 +29,7 @@ public class HomeController {
 	
 	@Autowired
 	private SessionFactory sessionFactory;
-	@Autowired
+	@Autowired(required=true)
 	private Fac_Service fac_Service;
 	
 	//getters and setters...
@@ -53,11 +54,11 @@ public class HomeController {
 	 * Simply selects the home view to render by returning its name.
 	 */
 	@RequestMapping(value = "/", method = RequestMethod.GET)
-	public String home(Locale locale, Model model) {
+	public String home(Locale locale, Model model){
 		
 		
 		/* 
-		 * models test run below..
+		 * models DEBUG test runs below..
 		 */
 		Course c1 = new Course(); c1.setCor_name("DISCRETE II");c1.setCor_timing(0);c1.setCor_dept("CSE");c1.setCor_description("good one");c1.setCor_section("X");
 								  c1.setCor_mod_id(0);c1.setCor_mod_token(0);c1.setCor_semstr("4");
@@ -92,7 +93,7 @@ public class HomeController {
 		try {
 		session.getTransaction().commit();
 		}catch(Exception e) {
-			session.getTransaction().commit();
+			session.getTransaction().rollback();
 			System.out.println(e);
 		}
 		
@@ -107,10 +108,28 @@ public class HomeController {
 		Date date = new Date();
 		DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
 		
+		Faculty new_fac = new Faculty();
+		new_fac.setFac_name("Gaurav");
+		new_fac.setFac_contact("9595959595");
+		fac_Service.addFaculty(new_fac);
+		new_fac.setFac_name("Pankaj");
+		fac_Service.addFaculty(new_fac);
+		
+		Course new_c = new Course();
+		new_c.setCor_name("NEW COURSE");
+		new_c.setCor_description("New One");
+		new_c.setCor_dept("ECE");
+		fac_Service.addCourse("Pankaj", new_c);
+		fac_Service.deleteCourseByName("DISCRETE II");
+		fac_Service.deleteCourseByName("OS II");
+		fac_Service.deleteCourseByName("RDBMS");
+		new_fac.setFac_contact("4554456654");
+		fac_Service.updateFaculty(new_fac);
+		
 		String formattedDate = dateFormat.format(date);
 		model.addAttribute("Faculty",fac_gotten);
 		 model.addAttribute("serverTime", formattedDate );
-		 model.addAttribute("Course", fac_Service.getCourseByName("RDBMS"));
+		 model.addAttribute("Course", fac_Service.getCourseByName("OS II"));
 		 model.addAttribute("FacultyList", fac_Service.getAllFacultyDetails());
 		 model.addAttribute("CourseList", fac_Service.getAllCourseDetails());
 		 model.addAttribute("TDSSCourse", fac_Service.getCourseByTDSS(2,"CSE", "4", "X"));

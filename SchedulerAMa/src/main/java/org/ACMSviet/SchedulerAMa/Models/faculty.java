@@ -9,13 +9,15 @@ import javax.persistence.Id;
 
 import org.ACMSviet.SchedulerAMa.Models.submodels.Course;
 import org.ACMSviet.SchedulerAMa.Models.submodels.Temp_Course;
+import org.springframework.stereotype.Repository;
 
 @Entity
+@Repository
 public class Faculty {
 	@Id
 	private String fac_name;	//faculty name (primary key)
 	private String  fac_contact;	//faculty contact number
-	@ElementCollection(fetch=FetchType.LAZY)
+	@ElementCollection(fetch=FetchType.EAGER)
 	private Collection<Course> fac_course;	//faculty courses list
 	@ElementCollection(fetch=FetchType.LAZY)
 	private Collection<Temp_Course> fac_temp_course;	//faculty modified(temporary) courses list
