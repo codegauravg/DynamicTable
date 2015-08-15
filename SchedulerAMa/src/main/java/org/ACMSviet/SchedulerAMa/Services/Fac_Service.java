@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-
+@Transactional
 public class Fac_Service {
 	/*
 	 * this is the basic CRUD service class for Faculty model and all its collections.
@@ -31,7 +31,7 @@ public class Fac_Service {
 
 
 	//Traversal or READ structure services...
-	@Transactional
+	
 	public Faculty getFacByName(String fac_name) {//getting the faculty object using the primary key(faculty NAME)
 		Session session = sessionFactory.getCurrentSession();
 
@@ -40,25 +40,24 @@ public class Fac_Service {
 		
 		return _return;
 	}
-	@Transactional
+	
 	public Course getCourseByName(String cor_name) {
 		Session session = sessionFactory.getCurrentSession();
-		 
-		Course cor_details=new Course();
 		Criteria fac_trav_criteria = session.createCriteria(Faculty.class);
 		
-		List<Faculty> fac_trav_list = fac_trav_criteria.list();
+		try{List<Faculty> fac_trav_list = fac_trav_criteria.list();
 		for(Faculty fac_trav : fac_trav_list) {
 			for(Course trav_course : fac_trav.getFac_course()) {
 				if(trav_course.getCor_name().equals(cor_name)) {
-					cor_details=trav_course;
+					return trav_course;
 				}
 			}
 		}
-		return cor_details;
+		}catch(Exception e) {System.err.println(e);}
+		return null;
 
 	}
-	@Transactional
+	
 	public Course getCourseByTDSS(int cor_timing,String cor_dept,String cor_semstr,String cor_section) {
 		Session session = sessionFactory.getCurrentSession();
 		 
@@ -70,7 +69,8 @@ public class Fac_Service {
 			for(Course trav_course : fac_trav.getFac_course()) {
 				if(trav_course.getCor_dept().equals(cor_dept)&&trav_course.getCor_semstr().equals(cor_semstr)&&
 						trav_course.getCor_section().equals(cor_section)&&trav_course.getCor_timing()==cor_timing) {
-					cor_details=trav_course;System.out.println("[TDSS]::match found");
+					System.out.println("[TDSS]::match found");
+					return trav_course;
 				}
 				
 			}
@@ -78,7 +78,25 @@ public class Fac_Service {
 		return cor_details;
 
 	}
-	@Transactional
+	
+	public Temp_Course getTemp_CourseByMODID(int _ip_temp_course_modid) {
+		Temp_Course _op_temp_course = new Temp_Course();
+		List<Faculty> _fac_list = getAllFacultyDetails();
+		for (Faculty _trav_fac : _fac_list) {
+			for(Temp_Course _trav_temp_cor : _trav_fac.getFac_temp_course()) {
+				if(_trav_temp_cor.getTemp_cor_mod_id()==_ip_temp_course_modid) {
+					System.out.println("[Service]Temp Course Details List service called:");
+					System.err.println(_op_temp_course.getTemp_cor_name());
+					return  _trav_temp_cor;
+				
+				}
+			}
+		}
+		System.out.println("[Service]Temp Course Details List service called[no result]:");
+		
+		return _op_temp_course;
+	}
+	
 	public List<Faculty> getAllFacultyDetails(){
 		Session session = sessionFactory.getCurrentSession();
 		List<Faculty> list_fac =session.createCriteria(Faculty.class).list();
@@ -89,7 +107,7 @@ public class Fac_Service {
 		return list_fac;
 		
 	}
-	@Transactional
+	
 	public List<Course> getAllCourseDetails(){
 		List<Course> course_list = new ArrayList<Course>();
 		Session session = sessionFactory.getCurrentSession();
@@ -103,10 +121,26 @@ public class Fac_Service {
 		System.out.println("[Service-DEBUGGER] Course traversal output:/n"+course_list);
 		return course_list;
 	}
+	
+	public List<Temp_Course> getAllTemp_CoursesDetails(){
+		List<Temp_Course> _op_list_temp_cor = new ArrayList<Temp_Course>();
+		List<Faculty> _list_fac = getAllFacultyDetails();
+		for(Faculty _trav_fac : _list_fac) {
+			for(Temp_Course _tav_temp_cor : _trav_fac.getFac_temp_course()) {
+				_op_list_temp_cor.add(_tav_temp_cor);
+	
+			}
+		}
+		System.out.println("[Service] All Temp Course Details List service called");
+		for(Temp_Course _debug_temp_cor : _op_list_temp_cor) {
+			System.err.println("[Temp_Course traversal element gotten]"+_debug_temp_cor.getTemp_cor_name());
+		}
+		return _op_list_temp_cor;
+	}
 
 /* TODO how to use an element of a collection list as an example in criteria API...??
  * 
- * @Transactional
+ * 
  * public Course getCourseByExample(Faculty fac) {
 		Course course = new Course();
 		Example example = Example.create(fac);
@@ -123,24 +157,23 @@ public class Fac_Service {
 
  
  	// model write services...
-	@Transactional
+	
  	public void addFaculty(Faculty _ip_faculty) {
  		Session session = sessionFactory.getCurrentSession();
  		 
  		session.save(_ip_faculty);
  		System.out.println("[Services]Faculty Add service called");
  	}
-	@Transactional
+	
  	public void addCourse(String _fac_name,Course _ip_course) {
+ 		Session session = sessionFactory.getCurrentSession();
  		Faculty _op_fac = getFacByName(_fac_name);
  		_op_fac.getFac_course().add(_ip_course);
- 		Session session = sessionFactory.getCurrentSession();
- 		 
  		session.update(_op_fac);
  		System.out.println("[Services]Course Add service called for Faculty : "+_fac_name);
  	}
-	@Transactional
-	public void addtemp_course(String _fac_name,Temp_Course _ip_temp_course) {
+	
+	public void addTemp_Course(String _fac_name,Temp_Course _ip_temp_course) {
  		Faculty _op_fac = getFacByName(_fac_name);
  		_op_fac.getFac_temp_course().add(_ip_temp_course);
  		Session session = sessionFactory.getCurrentSession();
@@ -150,7 +183,7 @@ public class Fac_Service {
  	}
 	
  	//model delete services..
-	@Transactional
+	
  	public void deleteFacultyByName(String  _ip_fac_name) {
  		Session session = sessionFactory.getCurrentSession();
  		 
@@ -158,7 +191,7 @@ public class Fac_Service {
  		session.delete(_del_fac);
  		System.err.println("[Services]Faculty Delete service called");
  	}
-	@Transactional
+	
  	public void deleteCourseByName(String _ip_cor_name){
  		Course _del_cor = getCourseByName(_ip_cor_name);
  		List<Faculty> _fac_list = getAllFacultyDetails();
@@ -178,7 +211,7 @@ public class Fac_Service {
  		for(Course cor : getAllCourseDetails()) {System.err.println("Course left :"+cor.getCor_name());}
 		System.err.println("[Services]Course Delete service called");
  	}
-	@Transactional
+	
  	public void deleteTemp_CourseByMODID(String _ip_temp_cor_name) {
  		Course _del_temp_cor = null;//TODO create read service for temporary courses...
  		List<Faculty> _fac_list = getAllFacultyDetails();
@@ -198,31 +231,37 @@ public class Fac_Service {
  	
  	
  	//model update services..
-	@Transactional
+	
 	public void updateFaculty(Faculty _ip_fac) {
 		this.sessionFactory.getCurrentSession().update(_ip_fac);
 		System.out.println("[SERVICE]Faculty details update service called...");
 	}
 	
-	@Transactional
+	
 	public void updateCourseByName(Course _ip_course) {
 		List<Faculty> _list_fac = getAllFacultyDetails();
-		try{
-			for(Faculty _trav_fac : _list_fac) {
+		Faculty temp_fac= new Faculty();
+			try{for(Faculty _trav_fac : _list_fac) {
+				if(_trav_fac.equals(temp_fac)) {
+					continue;
+				}
+				temp_fac=_trav_fac;
+				
 				for(Course _trav_cor : _trav_fac.getFac_course()) {
 					if(_trav_cor.getCor_name().equals(_ip_course.getCor_name())) {
 						_trav_fac.getFac_course().remove(_trav_cor);
 						_trav_fac.getFac_course().add(_ip_course);
-						this.sessionFactory.getCurrentSession().update(_trav_fac);
+						
 						System.out.println("[SERVICE-DEBUG-MODE]Course Update done");
 					}
+					
 				}
+				updateFaculty(_trav_fac);
 			}
-		}catch(Exception e) {System.err.println(e);}
-		System.out.println("[SERVICE]Course details update By Name service called...");
+			}catch(Exception e) {System.err.println(e);}
 	}
 	
-	@Transactional
+	
 	public void updateTemp_CourseByMODID(Temp_Course _ip_temp_course) {
 		List<Faculty> _list_fac = getAllFacultyDetails();
 		try{
@@ -243,6 +282,8 @@ public class Fac_Service {
 	
 	//TODO create all update services
  	
+	
+	
  	//getters and setters..
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;

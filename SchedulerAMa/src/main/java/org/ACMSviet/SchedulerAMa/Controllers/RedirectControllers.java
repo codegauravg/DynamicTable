@@ -17,12 +17,12 @@ public class RedirectControllers {
 	@Autowired
 	private SessionFactory sessionFactory;
 	
-	@RequestMapping(value="/home")
+/*	@RequestMapping(value="/home")
 	public ModelAndView homeRedirect() {
 		ModelAndView mnv = new ModelAndView("/home");
 		return mnv;
 	}
-	
+	*/
 	
 	
 	//getters and setters...

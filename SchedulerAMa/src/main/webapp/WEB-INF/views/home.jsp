@@ -34,6 +34,10 @@ i++;
 <br><br>
 <% }%>
 </fieldset>
+<fieldset><legend>TEMP COURSE FINDING BY MODID SERVICE CALL</legend>
+	TEMP COURSE NAME: ${TEMP_COR.temp_cor_name }
+	TEMP COURSE Description : ${TEMP_COR.temp_cor_description }
+</fieldset>
 
 <fieldset><legend>COURSE finding service result</legend>
 Course Name : ${Course.cor_name }
@@ -46,7 +50,7 @@ Course Description : ${Course.cor_description }
 <%List<Faculty> fac_list = (List<Faculty>)request.getAttribute("FacultyList");
 for(Faculty trav_fac : fac_list){
 	%>
-	Faculty NAME : <%=trav_fac.getFac_name() %> || CONTACT : <%=trav_fac.getFac_contact() %>
+	Faculty NAME : <%=trav_fac.getFac_name() %> || CONTACT : <%=trav_fac.getFac_contact() %> 
 	<br><br>
 	
 	<%}%>
@@ -56,7 +60,7 @@ for(Faculty trav_fac : fac_list){
 <%ArrayList<Course> cor_list = (ArrayList<Course>)request.getAttribute("CourseList");
 for(Course trav_cor : cor_list){
 	%>
-	Course NAME : <%=trav_cor.getCor_name() %> || Description : <%=trav_cor.getCor_description() %>
+	Course NAME : <%=trav_cor.getCor_name() %> || Description : <%=trav_cor.getCor_description() %> || MOD_TOKEN : <%=trav_cor.getCor_mod_token() %>
 	<br><br>
 	
 	<%}%>
