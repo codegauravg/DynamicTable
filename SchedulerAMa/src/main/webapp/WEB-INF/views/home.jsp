@@ -20,7 +20,7 @@
 NAME : ${Faculty.fac_name}
 <br>
 Contact : ${Faculty.fac_contact }
-<fieldset><legend>COURSES</legend>
+<%-- <fieldset><legend>COURSES</legend>
 <%
 Faculty fac =(Faculty) request.getAttribute("Faculty");
 int i=0;
@@ -32,7 +32,7 @@ i++;
  || Timing : <%=course.getCor_timing() %>
  || Description : <%=course.getCor_description() %>
 <br><br>
-<% }%>
+<% }%> --%>
 </fieldset>
 <fieldset><legend>TEMP COURSE FINDING BY MODID SERVICE CALL</legend>
 	TEMP COURSE NAME: ${TEMP_COR.temp_cor_name }
