@@ -32,7 +32,7 @@ i++;
  || Timing : <%=course.getCor_timing() %>
  || Description : <%=course.getCor_description() %>
 <br><br>
-<% }%> --%>
+<% }%> 
 </fieldset>
 <fieldset><legend>TEMP COURSE FINDING BY MODID SERVICE CALL</legend>
 	TEMP COURSE NAME: ${TEMP_COR.temp_cor_name }
@@ -71,6 +71,6 @@ Course Name : ${TDSSCourse.cor_name }
 Course Department : ${TDSSCourse.cor_dept }
 Course Timing : ${TDSSCourse.cor_timing }
 Course Description : ${TDSSCourse.cor_description }
-</fieldset>
+</fieldset>--%>
 </body>
 </html>

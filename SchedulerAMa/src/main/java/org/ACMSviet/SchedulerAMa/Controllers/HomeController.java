@@ -11,8 +11,10 @@ import org.ACMSviet.SchedulerAMa.Models.submodels.Course;
 import org.ACMSviet.SchedulerAMa.Models.submodels.Temp_Course;
 import org.ACMSviet.SchedulerAMa.Services.Fac_Service;
 import org.ACMSviet.SchedulerAMa.Services.ModTokenService;
+import org.ACMSviet.SchedulerAMa.Services.Task;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.cfg.CreateKeySecondPass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,8 @@ public class HomeController {
 	private Fac_Service fac_Service;
 	@Autowired(required=true)
 	private ModTokenService modTokenService;
+	@Autowired(required=true)
+	private Task task;
 	
 	//getters and setters...
 	public SessionFactory getSessionFactory() {
@@ -117,7 +121,7 @@ public class HomeController {
 		Date date = new Date();
 		DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
 		
-		
+/*		
 		Faculty new_fac = new Faculty();
 		new_fac.setFac_name("Gaurav");
 		new_fac.setFac_contact("9595959595");
@@ -141,7 +145,7 @@ public class HomeController {
 		modTokenService.setModToken(9, "CN II");
 		modTokenService.setModToken(10, "CN II");
 		modTokenService.setModToken(3, "CN II");
-		modTokenService.setModToken(56, "OS II");
+		modTokenService.setModToken(56, "OS II");*/
 /*		modTokenService.addToModToken(900, "CN II");
 		try {
 			modTokenService.decModToken("CN II");
@@ -152,8 +156,10 @@ public class HomeController {
 */
 
 		//check multi decriment for mod token services..no working, exception,:: no handler found::??
-
-
+		
+		System.err.println("Mod id unique boolean return ::"+task.isMODIDUnique(50));	
+		
+		task.createReplacementCourse("Anurag", c1, tc1, 5);
 		
 		String formattedDate = dateFormat.format(date);
 		model.addAttribute("Faculty",fac_gotten);
