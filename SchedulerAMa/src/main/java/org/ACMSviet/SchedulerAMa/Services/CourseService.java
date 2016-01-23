@@ -6,6 +6,7 @@ import java.util.List;
 import org.ACMSviet.SchedulerAMa.Models.Course;
 import org.ACMSviet.SchedulerAMa.Models.CourseListResponse;
 import org.ACMSviet.SchedulerAMa.Models.Repeatition;
+import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
 import org.ACMSviet.SchedulerAMa.Models.ResponseReport;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
@@ -99,7 +100,7 @@ public class CourseService {
 						Restrictions.and(Restrictions.eq("sem", sem), Restrictions.eq("section",section)))).list();
 		
 		if(courses.isEmpty()) {
-			return new CourseListResponse().addStatus(statusFailed).addError("No Course found.");
+			return new CourseListResponse().addStatus(statusFailed).addError("No such Course found.");
 		}
 		else {
 			return new CourseListResponse().addCourses(courses).addStatus(statusOK);
@@ -117,7 +118,7 @@ public class CourseService {
 							).list();
 			
 			if(courses.isEmpty()) {
-				return new CourseListResponse().addStatus(statusFailed).addError("No Course found.");
+				return new CourseListResponse().addStatus(statusFailed).addError("No such Course found.");
 			}
 			else {
 				return new CourseListResponse().addCourses(courses).addStatus(statusOK);
@@ -132,17 +133,22 @@ public class CourseService {
 			return new ResponseReport().addStatus(updateOK);
 			
 		}catch(Exception e) {
-			return new ResponseReport().addStatus(updateFailed).addError("No such Course Found in the data set.");
+			return new ResponseReport().addStatus(updateFailed).addError("No such Course Found.");
 		}
 			
 	}
 		
 	
 
-	//function: delete course details from the database.
+	//function: delete course details from the database.(also all child repeatitions)
 	public ResponseReport deleteCourseByName(String name) {
 		try {
 		List<Course> courses = getCourseByName(name).getCourses();
+		ArrayList<Repeatition> repeatitions = (ArrayList<Repeatition>) getCourseRepeatitions(name).getRepeatitions();
+		for(Repeatition rep : repeatitions) {
+			this.sessionFactory.getCurrentSession().delete(rep);
+		}
+		
 		this.sessionFactory.getCurrentSession().delete(courses.get(0));
 		return new ResponseReport().addStatus(deleteOK);
 		}catch(Exception e) {
@@ -151,26 +157,29 @@ public class CourseService {
 
 	}
 	
-	//function: add Repeatitions from a course.
+	//function: add repeatition from a course.
 	public ResponseReport addRepeatitions(String name,int weekDay,int lectureNo) {
 		try {
-			Repeatition rep = new Repeatition().addWeekDay(weekDay).addLectureNo(lectureNo);
-			Course course = getCourseByName(name).getCourses().get(0);
-
-			rep.addCourse(course);
-			this.sessionFactory.getCurrentSession().save(rep);
-			
+			this.sessionFactory.getCurrentSession().save(new Repeatition().addWeekDay(weekDay).addLectureNo(lectureNo).addCourse(getCourseByName(name).getCourses().get(0)));
 			return new ResponseReport().addStatus(updateOK);
 		}catch(Exception e) {
 			return new ResponseReport().addStatus(updateFailed).addError("No such Course found.");
 		}
 	}
 	
-	public ArrayList<Repeatition> getCourseRepeatitions(String name){
+	//function: get Repeatitions list for a Course.
+	public RepeatitionListResponse getCourseRepeatitions(String name){
 		try {
-			return (ArrayList<Repeatition>)this.sessionFactory.getCurrentSession().createCriteria(Repeatition.class).add(Restrictions.eq("course", getCourseByName(name).getCourses().get(0))).list();
+			ArrayList<Repeatition> repeatitions = (ArrayList<Repeatition>)this.sessionFactory.getCurrentSession().createCriteria(Repeatition.class)
+					.add(Restrictions.eq("course", getCourseByName(name).getCourses().get(0))).list();
+			
+			if(repeatitions.isEmpty()) {
+				return new RepeatitionListResponse().addStatus(statusFailed).addError("No Repeatitions for mentioned course");
+			}else {
+				return new RepeatitionListResponse().addStatus(statusOK).addRepeatitions(repeatitions);
+			}	
 		}catch(Exception e) {
-			return null;
+			return new RepeatitionListResponse().addStatus(statusFailed).addError("No such Course found.");
 		}
 	}
 		

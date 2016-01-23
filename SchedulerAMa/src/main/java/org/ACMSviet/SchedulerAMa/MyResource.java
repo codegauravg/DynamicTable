@@ -14,6 +14,7 @@ import javax.ws.rs.QueryParam;
 import org.ACMSviet.SchedulerAMa.Models.Course;
 import org.ACMSviet.SchedulerAMa.Models.CourseListResponse;
 import org.ACMSviet.SchedulerAMa.Models.Repeatition;
+import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
 import org.ACMSviet.SchedulerAMa.Models.ResponseReport;
 import org.ACMSviet.SchedulerAMa.Services.CourseService;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -86,9 +87,10 @@ public class MyResource {
   @GET
   @Path("/course/{name}/repeatition")
   @Produces("application/json")
-  public ArrayList<Repeatition> getCourseRepetitions(@PathParam("name") String name) {
+  public RepeatitionListResponse getCourseRepetitions(@PathParam("name") String name) {
 	  return courseService.getCourseRepeatitions(name);
   }
+  
     // fetch services end.
     
     /*
@@ -118,7 +120,7 @@ public class MyResource {
      */
   
 	  @DELETE
-	  @Path("/course/delete/{name}")
+	  @Path("/course/{name}")
 	  @Produces("application/json")
 	  public ResponseReport deleteCourseService(@PathParam("name") String name) {
 		  return courseService.deleteCourseByName(name);
