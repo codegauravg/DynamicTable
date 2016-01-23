@@ -31,7 +31,7 @@
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
 	
-	<context:component-scan base-package="org.ACMSviet.SchedulerAMa.Controllers" />
+	<context:component-scan base-package="org.ACMSviet.SchedulerAMa" />
 	
 		<!-- Hibernate integration configs below -->
 	
@@ -62,7 +62,7 @@
                 <beans:prop key="hibernate.jdbc.batch_size">10</beans:prop>
                 <beans:prop key="hibernate.show_sql">true</beans:prop>
                 <!-- IMPORTANT: This command creates the tables in the database. It clears the database upon application startup.  -->
-                <beans:prop key="hibernate.hbm2ddl.auto">create</beans:prop>    
+                <beans:prop key="hibernate.hbm2ddl.auto">update</beans:prop>    
             </beans:props>
         </beans:property>
     </beans:bean>
