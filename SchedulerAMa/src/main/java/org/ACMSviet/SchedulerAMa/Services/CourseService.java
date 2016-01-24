@@ -124,6 +124,7 @@ public class CourseService {
 				return new CourseListResponse().addCourses(courses).addStatus(statusOK);
 			}
 		}
+	
 	//function: Update the contents of course data..
 	public ResponseReport updateCourse(Course course) {
 		
@@ -138,23 +139,44 @@ public class CourseService {
 			
 	}
 		
-	
-
 	//function: delete course details from the database.(also all child repeatitions)
 	public ResponseReport deleteCourseByName(String name) {
+		//exception handling for no course found case.
 		try {
-		List<Course> courses = getCourseByName(name).getCourses();
-		ArrayList<Repeatition> repeatitions = (ArrayList<Repeatition>) getCourseRepeatitions(name).getRepeatitions();
-		for(Repeatition rep : repeatitions) {
-			this.sessionFactory.getCurrentSession().delete(rep);
-		}
-		
-		this.sessionFactory.getCurrentSession().delete(courses.get(0));
-		return new ResponseReport().addStatus(deleteOK);
+			List<Course> courses = getCourseByName(name).getCourses();
+			System.out.println(TAG+"Course found:"+courses.get(0).getName());
+			//exception handing for no repeatition gathered
+			try{
+				ArrayList<Repeatition> repeatitions = (ArrayList<Repeatition>) getCourseRepeatitions(name).getRepeatitions();
+				if(!repeatitions.isEmpty()) {
+					for(Repeatition rep : repeatitions) {
+						this.sessionFactory.getCurrentSession().delete(rep);
+					}
+				}
+			}catch(Exception e) {
+				//Do Nothing..
+				System.out.println(TAG+"No Repeatitions associated with mentioned course");
+			}
+			this.sessionFactory.getCurrentSession().delete(courses.get(0));
+			return new ResponseReport().addStatus(deleteOK);
+			
 		}catch(Exception e) {
 			return new ResponseReport().addStatus(deleteFailed).addError("No such Course found.");
 		}
 
+	}
+	
+	//function: delete all repeatitions for course available.
+	public ResponseReport flushRepeatitionsByCourseName(String name) {
+		try {
+			ArrayList<Repeatition> repeatitions = (ArrayList<Repeatition>) getCourseRepeatitions(name).getRepeatitions();
+			for(Repeatition rep : repeatitions) {
+				this.sessionFactory.getCurrentSession().delete(rep);
+			}
+			return new ResponseReport().addStatus(deleteOK);
+		}catch(Exception e) {
+			return new ResponseReport().addStatus(deleteFailed).addError("No Repeatitions found for mentioned Course.");
+		}
 	}
 	
 	//function: add repeatition from a course.
@@ -174,7 +196,7 @@ public class CourseService {
 					.add(Restrictions.eq("course", getCourseByName(name).getCourses().get(0))).list();
 			
 			if(repeatitions.isEmpty()) {
-				return new RepeatitionListResponse().addStatus(statusFailed).addError("No Repeatitions for mentioned course");
+				return new RepeatitionListResponse().addStatus(statusFailed).addError("No Repeatitions for mentioned course.");
 			}else {
 				return new RepeatitionListResponse().addStatus(statusOK).addRepeatitions(repeatitions);
 			}	
@@ -182,5 +204,19 @@ public class CourseService {
 			return new RepeatitionListResponse().addStatus(statusFailed).addError("No such Course found.");
 		}
 	}
+	
+	//function: Course list filtered by type
+	public CourseListResponse getCourseListByType(String type) {
+		try {
+			ArrayList<Course> courses = (ArrayList<Course>) this.sessionFactory.getCurrentSession().createCriteria(Course.class).add(Restrictions.eq("type", type)).list();
+			if(courses.isEmpty()) {
+				return new CourseListResponse().addStatus(statusFailed).addError("No such Course found.");
+			}
+			return new CourseListResponse().addCourses(courses).addStatus(statusOK);
+		}catch(Exception e) {
+			return new CourseListResponse().addStatus(statusFailed).addError("Fetch Error Occured.");
+		}
+	}
 		
+	
 }
