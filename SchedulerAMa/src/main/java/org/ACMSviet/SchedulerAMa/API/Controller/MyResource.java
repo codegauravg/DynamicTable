@@ -114,8 +114,6 @@ public class MyResource {
 	}
 
 	
-	//TODO updated in API SERVICE SPECS till this point.
-	
 	@RequestMapping(value="/API/repeatition/main",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
 	public RepeatitionListResponse getRepeatitionsOfMainCourse() {
 		return courseService.getRepeatitionsByCourseType("main");
@@ -131,6 +129,9 @@ public class MyResource {
 			@PathVariable("sem")String sem,@PathVariable("section")String section) {
 		return courseService.getScheduleForDSS(dept, sem, section);
 	}
+	
+	
+	//TODO updated in API SERVICE SPECS till this point.
 /*	  return courseService.addCourse(new Course().addName("SE").addDept("CSE").addDescription("SE - Software Engineering").addFac_contact("9501669223")
 			  .addFaculty("Gurpreet Mam").addRefBook("SE - Bilal Saeed").addSection("6X").addSem("6").addtRefBookLink("google.in")
 			  .addType("main")); */

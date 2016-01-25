@@ -276,9 +276,6 @@ public class CourseService {
 		}
 	}
 	
-	
-	//TODO updated in API SERVICE SPECS till this point.
-	
 	//function: get Repeatitions by Course type.
 	public RepeatitionListResponse getRepeatitionsByCourseType(String type) {
 		if(!type.equals("main")&&!type.equals("temp")){return new RepeatitionListResponse().addStatus(statusFailed).addError("Unsupported Course type entered.");}
