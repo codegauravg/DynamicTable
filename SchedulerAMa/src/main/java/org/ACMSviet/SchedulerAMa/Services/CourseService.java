@@ -9,6 +9,7 @@ import org.ACMSviet.SchedulerAMa.Models.Repeatition;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
 import org.ACMSviet.SchedulerAMa.Models.ResponseReport;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Example;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class CourseService {
 	 * TODO List:
 	 * -> Code Update Services. *done*
 	 * -> Code Deletion Services. *done*
-	 * -> Code Repeation adding,updating and deletion services. (also check for no duplicacy of repeatitions in same DSS, different types are excluded)
+	 * -> Code Repeation adding,updating and deletion services. (also check for no duplicacy of repeatitions in same DSS, different types are excluded) *done*
 	 * -> Create a service for getting all repeatitions(temp type course overlapping the main type course) of a specific DSS. use hibernate EXAMPLE API.
 	 * -> Views:
 	 * 	-> filter by class.*done*
@@ -183,10 +184,37 @@ public class CourseService {
 	//function: add repeatition from a course.
 	public ResponseReport addRepeatitions(String name,int weekDay,int lectureNo) {
 		try {
-			this.sessionFactory.getCurrentSession().save(new Repeatition().addWeekDay(weekDay).addLectureNo(lectureNo).addCourse(getCourseByName(name).getCourses().get(0)));
-			return new ResponseReport().addStatus(updateOK);
+			
+			if(weekDay>5||lectureNo>7||weekDay<1||lectureNo<1) {
+				return new ResponseReport().addStatus(addFailed).addError("Range for weekDay : 1 - 5 & lectureNo : 1 -7");
+			}
+			
+			Course course = getCourseByName(name).getCourses().get(0);
+			
+			ArrayList<Repeatition> repeatitions = (ArrayList<Repeatition>)this.sessionFactory.getCurrentSession().createCriteria(Repeatition.class)
+					.add(
+							//finding repeatition schedule similarities
+							Restrictions.and(Restrictions.eq("weekDay", weekDay),Restrictions.eq("lectureNo", lectureNo))
+						).list();
+			
+			if(!repeatitions.isEmpty()) {
+				
+				for(Repeatition travRep : repeatitions) {
+					if(travRep.getCourse().getDept().equals(course.getDept())&&travRep.getCourse().getSem().equals(course.getSem())&&
+							travRep.getCourse().getSection().equals(course.getSection())&&travRep.getCourse().getType().equals(course.getType())) {
+						return new ResponseReport().addStatus(addFailed).addError("Similar Repeatition is available in the Schedule.");
+					}
+				}
+				this.sessionFactory.getCurrentSession().save(new Repeatition().addWeekDay(weekDay).addLectureNo(lectureNo).addCourse(course));
+				return new ResponseReport().addStatus(updateOK);
+	
+			}
+			else {
+				this.sessionFactory.getCurrentSession().save(new Repeatition().addWeekDay(weekDay).addLectureNo(lectureNo).addCourse(course));
+				return new ResponseReport().addStatus(updateOK);
+			}
 		}catch(Exception e) {
-			return new ResponseReport().addStatus(updateFailed).addError("No such Course found.");
+			return new ResponseReport().addError(addFailed).addError("No Such Course Found.");
 		}
 	}
 	
@@ -216,6 +244,34 @@ public class CourseService {
 			return new CourseListResponse().addCourses(courses).addStatus(statusOK);
 		}catch(Exception e) {
 			return new CourseListResponse().addStatus(statusFailed).addError("Fetch Error Occured.");
+		}
+		
+		
+	}
+	
+	//function: Delete Unique Repeatition for a mentioned course
+	public ResponseReport deleteUniqueRepeatitionByCourseName(String name,int weekDay,int lectureNo) {
+		
+		if(weekDay>5||lectureNo>7||weekDay<1||lectureNo<1) {
+			return new ResponseReport().addStatus(deleteFailed).addError("Range for weekDay : 1 - 5 & lectureNo : 1 -7");
+		}
+		
+		try {
+			Course course = getCourseByName(name).getCourses().get(0);
+			Repeatition repeatition = (Repeatition) this.sessionFactory.getCurrentSession().createCriteria(Repeatition.class)
+					.add(Restrictions.and(Restrictions.eq("course", course),Restrictions.and(
+							Restrictions.eq("weekDay", weekDay), Restrictions.eq("lectureNo", lectureNo)) )).uniqueResult();
+			if(repeatition==null) {
+				return new ResponseReport().addStatus(deleteFailed).addError("No Such Repeatition Found for mentioned Course.");
+			}
+			
+			this.sessionFactory.getCurrentSession().delete(repeatition);
+			return new ResponseReport().addStatus(deleteOK);
+			
+		}catch(Exception e) {
+			System.out.println(e);
+			return new ResponseReport().addStatus(deleteFailed).addError("No such Course Found.");
+			
 		}
 	}
 		

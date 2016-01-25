@@ -76,7 +76,7 @@ public class MyResource {
 	  return courseService.addCourse(course); 
   }
   
-  @RequestMapping(value="/API/course/{name}/{weekDay}/{lectureNo}",method=RequestMethod.POST,produces=MediaType.APPLICATION_JSON_VALUE)
+  @RequestMapping(value="/API/repeatition/{name}/{weekDay}/{lectureNo}",method=RequestMethod.POST,produces=MediaType.APPLICATION_JSON_VALUE)
   public ResponseReport addRepeatitionService(@PathVariable("name") String name,@PathVariable("weekDay") int weekDay,
 		  @PathVariable("lectureNo")int lectureNo) {
 	  return courseService.addRepeatitions(name, weekDay, lectureNo);
@@ -105,6 +105,12 @@ public class MyResource {
 	produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseReport updateCourseService(Course course) {
 		return courseService.updateCourse(course);
+	}
+	
+	@RequestMapping(value="/API/repeatition/{name}/{weekDay}/{lectureNo}",method=RequestMethod.DELETE,produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseReport deleteUniqueRepeatitionByCourseNameService(@PathVariable("name")String name,@PathVariable("weekDay")int weekDay,
+			@PathVariable("lectureNo")int lectureNo) {
+		return courseService.deleteUniqueRepeatitionByCourseName(name, weekDay, lectureNo);
 	}
 
 /*	  return courseService.addCourse(new Course().addName("SE").addDept("CSE").addDescription("SE - Software Engineering").addFac_contact("9501669223")

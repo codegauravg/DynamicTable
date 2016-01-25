@@ -16,13 +16,13 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 /API/course/{name}	                                DELETE	-	                    APPLICATION_JSON	Delete a Course By name.
 /API/course/{name}/flushRepeatitions            	DELETE	-	                    APPLICATION_JSON	Clear All Repeatitions for mentioned Course.
 /API/course/update                              	POST -  	APPLICATION_JSON	APPLICATION_JSON	Update a mentioned Course.
-/API/course/{name}/{weekDay}/{lectureNo}        	POST -                      	APPLICATION_JSON	Add repeatition to a mentioned course.
-
+/API/repeatition/{name}/{weekDay}/{lectureNo}        	POST -                      	APPLICATION_JSON	Add repeatition to a mentioned course.
+/API/repeatition/{name}/{weekDay}/{lectureNo} 		DELETE	-											APPLICATION_JSON	Delete a unique repeatition for mentioned course.
 ##Response Body Formats
 
 ###All Methods excluding GET return a ResponseSheet Format that only includes a status and error report. APPLICATION_JSON Body Format is mentioned below:
 
-{ 
+{
 	"status": "STATUS MESSAGE",
 	"error": "ERROR MESSAGE (IF ANY)"
 }
@@ -31,11 +31,11 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 
 1. Either a course list is returned in links like "/API/course", which include a status, error(if any), and a list of courses. APPLICATION_JSON Body Format is mentioned below:
 
-{ 
-	"status": "STATUS OK", 
-	"error": "ERROR (IF ANY)", 
-	"courses": 
-	[ 
+{
+	"status": "STATUS OK",
+	"error": "ERROR (IF ANY)",
+	"courses":
+	[
 		{
 			"name": "SE",
 			"type": "main",
@@ -73,7 +73,7 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 		{
 			"id": 3,
 			"weekDay": 4,
-			"lectureNo": 5, 
+			"lectureNo": 5,
 			"course":
 			{
 				"name": "SE",
@@ -113,7 +113,7 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 
 All API links (PUT/POST METHODS) that consumes APPLICATION_JSON format have a specific FORMAT. Mentioned below:
 Course APPLIATION_JSON BODY FORMAT(for eg,  link : "/API/course" method : PUT):
-			
+
 			{
 				"name": "SE",
 				"type": "main",
