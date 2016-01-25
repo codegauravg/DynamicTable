@@ -28,6 +28,7 @@ public class CourseService {
 	 * -> Views:
 	 * 	-> filter by class.*done*
 	 * 	-> filter by faculty.*done*
+	 * -> add error control in addingCourse functions.
 	 */
 
 	@Autowired
@@ -272,6 +273,82 @@ public class CourseService {
 			System.out.println(e);
 			return new ResponseReport().addStatus(deleteFailed).addError("No such Course Found.");
 			
+		}
+	}
+	
+	
+	//TODO updated in API SERVICE SPECS till this point.
+	
+	//function: get Repeatitions by Course type.
+	public RepeatitionListResponse getRepeatitionsByCourseType(String type) {
+		if(!type.equals("main")&&!type.equals("temp")){return new RepeatitionListResponse().addStatus(statusFailed).addError("Unsupported Course type entered.");}
+		try {
+			ArrayList<Repeatition> repeatitions = (ArrayList<Repeatition>) this.sessionFactory.getCurrentSession().createCriteria(Repeatition.class).list();
+			if(!repeatitions.isEmpty()) {
+				ArrayList<Repeatition> repeatitionList = new ArrayList<Repeatition>();
+				for(Repeatition repeatition : repeatitions ) {
+					if(repeatition.getCourse().getType().equals(type)) {
+						repeatitionList.add(repeatition);
+					}
+				}
+				
+				if(!repeatitionList.isEmpty()) {return new RepeatitionListResponse().addRepeatitions(repeatitionList).addStatus(statusOK);}
+				else {return new RepeatitionListResponse().addStatus(statusFailed).addError("No repeatitions for mentioned Type.");}
+			}else {
+				return new RepeatitionListResponse().addStatus(statusFailed).addError("Repeatitions List Empty.");
+			}
+		}catch(Exception e) {
+			return new RepeatitionListResponse().addStatus(statusFailed).addError("No repeatitions Found");
+		}	
+	}
+	
+	//function: Get all unique repeatitions of a specific DSS(Where temp course overlaps main course).
+	//TODO: optimize this function to perform lesser iterations.
+	//TODO: this code crashes if there is no temp or main course individually. FIX THIS.
+	public RepeatitionListResponse getScheduleForDSS(String dept,String sem,String section) {
+		ArrayList<Repeatition> tempRepeatitions = (ArrayList<Repeatition>) getRepeatitionsByCourseType("temp").getRepeatitions();
+		ArrayList<Repeatition> mainRepeatitions = (ArrayList<Repeatition>) getRepeatitionsByCourseType("main").getRepeatitions();
+		ArrayList<Repeatition> scheduleList = new ArrayList<Repeatition>();
+		
+		try {
+			if(mainRepeatitions.isEmpty()) {}
+			if(tempRepeatitions.isEmpty()) {}
+		}catch(Exception e) {
+			return new RepeatitionListResponse().addStatus(statusFailed).addError("No Temp or Main Course Found.");		
+		}
+		
+		for(int weekDay=1;weekDay<=5;weekDay++) {
+			for(int lectureNo=1;lectureNo<=7;lectureNo++) {
+				//for checking if a temp course for this repeatition is found.
+				boolean tempGet = false;
+				if(!tempRepeatitions.isEmpty()) {
+					//iteration for adding temp courses in scheduleList.
+					for(Repeatition tempRep : tempRepeatitions) {
+						if(tempRep.getWeekDay()==weekDay&&tempRep.getLectureNo()==lectureNo&&
+						tempRep.getCourse().getDept().equals(dept)&&tempRep.getCourse().getSem().equals(sem)&&tempRep.getCourse().getSection().equals(section)) {
+							scheduleList.add(tempRep);
+							tempGet=true;
+						}
+					}
+				}
+				else {System.out.println("yahaan aya hai bhai...");}
+				//if tempCourse is found, 
+				if(tempGet) {continue;}
+				if(!mainRepeatitions.isEmpty()) {
+					//iteration for adding main courses in scheduleList.
+					for(Repeatition mainRep : mainRepeatitions) {
+						if(mainRep.getWeekDay()==weekDay&&mainRep.getLectureNo()==lectureNo&&
+						mainRep.getCourse().getDept().equals(dept)&&mainRep.getCourse().getSem().equals(sem)&&mainRep.getCourse().getSection().equals(section)) {
+							scheduleList.add(mainRep);
+						}
+					}
+				}
+			}
+		}
+		
+		if(!scheduleList.isEmpty()) {return new RepeatitionListResponse().addRepeatitions(scheduleList).addStatus(statusOK); }
+		else{
+			return new RepeatitionListResponse().addStatus(statusFailed).addError("Schedule for selected category is empty.");
 		}
 	}
 		

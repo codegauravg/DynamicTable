@@ -93,7 +93,7 @@ public class MyResource {
 		  return courseService.deleteCourseByName(name);
 	  }
 	  
-	  @RequestMapping(value="/API/course/{name}/flushRepeatitions",method=RequestMethod.DELETE,produces=MediaType.APPLICATION_JSON_VALUE)
+	  @RequestMapping(value="/API/repeatition/{name}/flushRepeatitions",method=RequestMethod.DELETE,produces=MediaType.APPLICATION_JSON_VALUE)
 	  public ResponseReport flushRepeatitionsByCourseNameService(@PathVariable("name") String name) {
 		  return courseService.flushRepeatitionsByCourseName(name);
 	  }
@@ -113,6 +113,24 @@ public class MyResource {
 		return courseService.deleteUniqueRepeatitionByCourseName(name, weekDay, lectureNo);
 	}
 
+	
+	//TODO updated in API SERVICE SPECS till this point.
+	
+	@RequestMapping(value="/API/repeatition/main",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public RepeatitionListResponse getRepeatitionsOfMainCourse() {
+		return courseService.getRepeatitionsByCourseType("main");
+	}
+	
+	@RequestMapping(value="/API/repeatition/temp",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public RepeatitionListResponse getRepeatitionsOfTempCourse() {
+		return courseService.getRepeatitionsByCourseType("temp");
+	}
+	
+	@RequestMapping(value="/API/schedule/{dept}/{sem}/{section}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public RepeatitionListResponse getScheduleForDSSService(@PathVariable("dept")String dept,
+			@PathVariable("sem")String sem,@PathVariable("section")String section) {
+		return courseService.getScheduleForDSS(dept, sem, section);
+	}
 /*	  return courseService.addCourse(new Course().addName("SE").addDept("CSE").addDescription("SE - Software Engineering").addFac_contact("9501669223")
 			  .addFaculty("Gurpreet Mam").addRefBook("SE - Bilal Saeed").addSection("6X").addSem("6").addtRefBookLink("google.in")
 			  .addType("main")); */

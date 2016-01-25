@@ -14,10 +14,13 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 /API/course/main                                	GET	-	                        APPLICATION_JSON	Get All arranged scheduled Courses.
 /API/course	                                        PUT -   	APPLICATION_JSON	APPLICATION_JSON	Create a New Course.
 /API/course/{name}	                                DELETE	-	                    APPLICATION_JSON	Delete a Course By name.
-/API/course/{name}/flushRepeatitions            	DELETE	-	                    APPLICATION_JSON	Clear All Repeatitions for mentioned Course.
+/API/repeatition/{name}/flushRepeatitions            	DELETE	-	                    APPLICATION_JSON	Clear All Repeatitions for mentioned Course.
 /API/course/update                              	POST -  	APPLICATION_JSON	APPLICATION_JSON	Update a mentioned Course.
 /API/repeatition/{name}/{weekDay}/{lectureNo}        	POST -                      	APPLICATION_JSON	Add repeatition to a mentioned course.
 /API/repeatition/{name}/{weekDay}/{lectureNo} 		DELETE	-											APPLICATION_JSON	Delete a unique repeatition for mentioned course.
+/API/repeatition/main															GET			-											APPLICATION_JSON	Get list of main Repeatitions
+/API/repeatition/temp															GET			-											APPLICATION_JSON	Get list of temp Repeatitions
+/API/schedule/{dept}/{sem}/{section}							GET			-											APPLICATION_JSON	Get Scheduled Repeatitions List for mentioned dept-sem-section unit.
 ##Response Body Formats
 
 ###All Methods excluding GET return a ResponseSheet Format that only includes a status and error report. APPLICATION_JSON Body Format is mentioned below:
