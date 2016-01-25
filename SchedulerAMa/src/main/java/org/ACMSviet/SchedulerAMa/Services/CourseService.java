@@ -22,7 +22,8 @@ public class CourseService {
 	 * TODO List:
 	 * -> Code Update Services. *done*
 	 * -> Code Deletion Services. *done*
-	 * -> Code Repeation adding,updating and deletion services.
+	 * -> Code Repeation adding,updating and deletion services. (also check for no duplicacy of repeatitions in same DSS, different types are excluded)
+	 * -> Create a service for getting all repeatitions(temp type course overlapping the main type course) of a specific DSS. use hibernate EXAMPLE API.
 	 * -> Views:
 	 * 	-> filter by class.*done*
 	 * 	-> filter by faculty.*done*
