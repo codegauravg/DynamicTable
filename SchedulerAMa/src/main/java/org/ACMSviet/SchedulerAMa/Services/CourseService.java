@@ -29,6 +29,8 @@ public class CourseService {
 	 * 	-> filter by class.*done*
 	 * 	-> filter by faculty.*done*
 	 * -> add error control in addingCourse functions.
+	 * 
+	 * -> error in schedule fuction, giving duplicate data sets.
 	 */
 
 	@Autowired
