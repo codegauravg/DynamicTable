@@ -21,6 +21,8 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 /API/repeatition/main															GET			-											APPLICATION_JSON	Get list of main Repeatitions
 /API/repeatition/temp															GET			-											APPLICATION_JSON	Get list of temp Repeatitions
 /API/schedule/{dept}/{sem}/{section}							GET			-											APPLICATION_JSON	Get Scheduled Repeatitions List for mentioned dept-sem-section unit.
+/API/schedule/{dept}/{sem}/{section}/{weekDay}		GET			-											APPLICATION_JSON	Get Scheduled Repeatitions List for mentioned dept-sem-section unit for a specific weekDay.
+
 ##Response Body Formats
 
 ###All Methods excluding GET return a ResponseSheet Format that only includes a status and error report. APPLICATION_JSON Body Format is mentioned below:

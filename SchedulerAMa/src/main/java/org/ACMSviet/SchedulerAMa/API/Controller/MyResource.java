@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MyResource {
 	@Autowired private CourseService courseService;
 
+	private String sch_auth_token = "thehehelllord";
 	
     /*
      * All fetch Services below.
@@ -40,13 +41,13 @@ public class MyResource {
   
   @RequestMapping(value="/API/course/{dept}/{sem}/{section}",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_VALUE)
   public CourseListResponse getCourseByDSSService(@PathVariable("dept")String dept,
-		  @PathVariable("sem")String sem,@PathVariable("section")String section) {
+  @PathVariable("sem")String sem,@PathVariable("section")String section) {
 	  return courseService.findCoursesByDSS(dept, sem, section);
   }
   
   @RequestMapping(value="/API/course/{dept}/{sem}/{section}/{faculty}",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_VALUE)
   public CourseListResponse getCourseByDSSFService(@PathVariable("dept")String dept,
-		  @PathVariable("sem")String sem,@PathVariable("section")String section,@PathVariable("faculty") String faculty) {
+  @PathVariable("sem")String sem,@PathVariable("section")String section,@PathVariable("faculty") String faculty) {
 	  return courseService.findCoursesByDSSF(dept, sem, section, faculty);
   }
   
@@ -64,6 +65,22 @@ public class MyResource {
   public CourseListResponse getTempCoursesService() {
 	  return courseService.getCourseListByType("temp");
   }
+  
+	@RequestMapping(value="/API/repeatition/main",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public RepeatitionListResponse getRepeatitionsOfMainCourse() {
+		return courseService.getRepeatitionsByCourseType("main");
+	}
+	
+	@RequestMapping(value="/API/repeatition/temp",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public RepeatitionListResponse getRepeatitionsOfTempCourse() {
+		return courseService.getRepeatitionsByCourseType("temp");
+	}
+	
+	@RequestMapping(value="/API/schedule/{dept}/{sem}/{section}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public RepeatitionListResponse getScheduleForDSSService(@PathVariable("dept")String dept,
+			@PathVariable("sem")String sem,@PathVariable("section")String section) {
+		return courseService.getScheduleForDSS(dept, sem, section);
+	}
   
 	// fetch services end.
 	
@@ -98,6 +115,11 @@ public class MyResource {
 		  return courseService.flushRepeatitionsByCourseName(name);
 	  }
 	  
+		@RequestMapping(value="/API/repeatition/{name}/{weekDay}/{lectureNo}",method=RequestMethod.DELETE,produces=MediaType.APPLICATION_JSON_VALUE)
+		public ResponseReport deleteUniqueRepeatitionByCourseNameService(@PathVariable("name")String name,@PathVariable("weekDay")int weekDay,
+				@PathVariable("lectureNo")int lectureNo) {
+			return courseService.deleteUniqueRepeatitionByCourseName(name, weekDay, lectureNo);
+		}
 	  // Delete Services end.
 	  
 	//update course..
@@ -107,31 +129,17 @@ public class MyResource {
 		return courseService.updateCourse(course);
 	}
 	
-	@RequestMapping(value="/API/repeatition/{name}/{weekDay}/{lectureNo}",method=RequestMethod.DELETE,produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseReport deleteUniqueRepeatitionByCourseNameService(@PathVariable("name")String name,@PathVariable("weekDay")int weekDay,
-			@PathVariable("lectureNo")int lectureNo) {
-		return courseService.deleteUniqueRepeatitionByCourseName(name, weekDay, lectureNo);
-	}
-
-	
-	@RequestMapping(value="/API/repeatition/main",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
-	public RepeatitionListResponse getRepeatitionsOfMainCourse() {
-		return courseService.getRepeatitionsByCourseType("main");
-	}
-	
-	@RequestMapping(value="/API/repeatition/temp",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
-	public RepeatitionListResponse getRepeatitionsOfTempCourse() {
-		return courseService.getRepeatitionsByCourseType("temp");
-	}
-	
-	@RequestMapping(value="/API/schedule/{dept}/{sem}/{section}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
-	public RepeatitionListResponse getScheduleForDSSService(@PathVariable("dept")String dept,
-			@PathVariable("sem")String sem,@PathVariable("section")String section) {
-		return courseService.getScheduleForDSS(dept, sem, section);
-	}
 	
 	
 	//TODO updated in API SERVICE SPECS till this point.
+	
+	@RequestMapping(value="/API/schedule/{dept}/{sem}/{section}/{weekDay}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public RepeatitionListResponse getScheduleForDSSweekDayService(@PathVariable("dept")String dept,
+			@PathVariable("sem")String sem,@PathVariable("section")String section,@PathVariable("weekDay") int weekDay) {
+		return courseService.getScheduleForDSSWeekDay(dept, sem, section,weekDay);
+	}
+	
+
 /*	  return courseService.addCourse(new Course().addName("SE").addDept("CSE").addDescription("SE - Software Engineering").addFac_contact("9501669223")
 			  .addFaculty("Gurpreet Mam").addRefBook("SE - Bilal Saeed").addSection("6X").addSem("6").addtRefBookLink("google.in")
 			  .addType("main")); */
