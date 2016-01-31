@@ -2,6 +2,8 @@ package org.ACMSviet.SchedulerAMa.API.Controller;
 
 import org.ACMSviet.SchedulerAMa.Models.Course;
 import org.ACMSviet.SchedulerAMa.Models.CourseListResponse;
+import org.ACMSviet.SchedulerAMa.Models.DSS;
+import org.ACMSviet.SchedulerAMa.Models.DSSModificationLog;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
 import org.ACMSviet.SchedulerAMa.Models.ResponseReport;
 import org.ACMSviet.SchedulerAMa.Services.CourseService;
@@ -22,6 +24,11 @@ public class MyResource {
     /*
      * All fetch Services below.
      */
+	
+	@RequestMapping(value="/API/notify/{dept}/{sem}/{section}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public DSSModificationLog getModificationLog(@PathVariable("dept")String dept,@PathVariable("sem")String sem,@PathVariable("section")String section) {
+		return courseService.getDSSModLog(new DSS().addDept(dept).addSection(section).addSem(sem));
+	}
   
   @RequestMapping(value="/API/course",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_VALUE)
   public CourseListResponse getAllCoursesService() {

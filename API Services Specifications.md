@@ -22,6 +22,7 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 /API/repeatition/temp															GET			-											APPLICATION_JSON	Get list of temp Repeatitions
 /API/schedule/{dept}/{sem}/{section}							GET			-											APPLICATION_JSON	Get Scheduled Repeatitions List for mentioned dept-sem-section unit.
 /API/schedule/{dept}/{sem}/{section}/{weekDay}		GET			-											APPLICATION_JSON	Get Scheduled Repeatitions List for mentioned dept-sem-section unit for a specific weekDay.
+/API/notify/{dept}/{sem}/{section}								GET			-											APPLICATION_JSON	Get The modification counter for a specific dept,sem & section unit.
 
 ##Response Body Formats
 
@@ -32,7 +33,7 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 	"error": "ERROR MESSAGE (IF ANY)"
 }
 
-###In case of GET method, there are 2 possibilities.
+###In case of GET method, there are 3 possibilities.
 
 1. Either a course list is returned in links like "/API/course", which include a status, error(if any), and a list of courses. APPLICATION_JSON Body Format is mentioned below:
 
@@ -113,6 +114,19 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 		}
 	]
 }
+
+3. Specificatlly for the link "/API/notify/{dept}/{sem}/{section}", the produced json format is unique because is provides the data of modification counter for a specific Dept, Sem & Section unit. APPLICATION_JSON Body Format is mentioned below:
+
+{
+  "dss": {
+    "dept": "CSE",
+    "sem": "6",
+    "section": "X"
+  },
+  "modifiedCount": 4
+}
+
+
 
 ###Request Body Formats
 

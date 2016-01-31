@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.ACMSviet.SchedulerAMa.Models.Course;
 import org.ACMSviet.SchedulerAMa.Models.CourseListResponse;
+import org.ACMSviet.SchedulerAMa.Models.DSS;
+import org.ACMSviet.SchedulerAMa.Models.DSSModificationLog;
 import org.ACMSviet.SchedulerAMa.Models.Repeatition;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
 import org.ACMSviet.SchedulerAMa.Models.ResponseReport;
@@ -57,9 +59,12 @@ public class CourseService {
 		else if(getCourseByName(course.getName()).getStatus().equals(statusOK)) {
 			return new ResponseReport().addStatus(addFailed).addError("Course Already exists.");
 		}
-		
+			
 		System.out.println(TAG+"Course Add service called for "+ course.getName());
 		this.sessionFactory.getCurrentSession().save(course);
+		notifyModification(course);	
+		
+		
 		return new ResponseReport().addStatus(addOK);
 	}
 	
@@ -138,6 +143,7 @@ public class CourseService {
 		try {
 			List<Course> courses = getCourseByName(course.getName()).getCourses();
 			this.sessionFactory.getCurrentSession().update(courses.get(0).addFaculty(course.getFaculty()));
+			notifyModification(course);
 			return new ResponseReport().addStatus(updateOK);
 			
 		}catch(Exception e) {
@@ -165,6 +171,7 @@ public class CourseService {
 				System.out.println(TAG+"No Repeatitions associated with mentioned course");
 			}
 			this.sessionFactory.getCurrentSession().delete(courses.get(0));
+			notifyModification(courses.get(0));
 			return new ResponseReport().addStatus(deleteOK);
 			
 		}catch(Exception e) {
@@ -179,7 +186,9 @@ public class CourseService {
 			ArrayList<Repeatition> repeatitions = (ArrayList<Repeatition>) getCourseRepeatitions(name).getRepeatitions();
 			for(Repeatition rep : repeatitions) {
 				this.sessionFactory.getCurrentSession().delete(rep);
+				notifyModification(rep.getCourse());
 			}
+			
 			return new ResponseReport().addStatus(deleteOK);
 		}catch(Exception e) {
 			return new ResponseReport().addStatus(deleteFailed).addError("No Repeatitions found for mentioned Course.");
@@ -211,11 +220,13 @@ public class CourseService {
 					}
 				}
 				this.sessionFactory.getCurrentSession().save(new Repeatition().addWeekDay(weekDay).addLectureNo(lectureNo).addCourse(course));
+				notifyModification(course);
 				return new ResponseReport().addStatus(updateOK);
 	
 			}
 			else {
 				this.sessionFactory.getCurrentSession().save(new Repeatition().addWeekDay(weekDay).addLectureNo(lectureNo).addCourse(course));
+				notifyModification(course);
 				return new ResponseReport().addStatus(updateOK);
 			}
 		}catch(Exception e) {
@@ -271,6 +282,7 @@ public class CourseService {
 			}
 			
 			this.sessionFactory.getCurrentSession().delete(repeatition);
+			notifyModification(course);
 			return new ResponseReport().addStatus(deleteOK);
 			
 		}catch(Exception e) {
@@ -404,6 +416,40 @@ public class CourseService {
 				return new RepeatitionListResponse().addStatus(statusFailed).addError("Schedule for selected category is empty.");
 			}
 		}
-
-	
+		
+		//DSS services
+		
+		
+		public void createDSSModLog(DSS dss) {
+			this.sessionFactory.getCurrentSession().save(new DSSModificationLog().addModifiedCount(0)
+					.addDss(dss));
+		}
+		
+		public DSSModificationLog getDSSModLog(DSS dss) {
+			return (DSSModificationLog) this.sessionFactory.getCurrentSession().get(DSSModificationLog.class, dss);
+		}
+		
+		public void DSSModLogInc(DSS dss) {
+			DSSModificationLog dssmodlog = (DSSModificationLog) this.sessionFactory.getCurrentSession().get(DSSModificationLog.class, dss);
+			dssmodlog.setModifiedCount(dssmodlog.getModifiedCount()+1);
+			this.sessionFactory.getCurrentSession().update(dssmodlog);
+			System.out.println(TAG+"DSSModification Increment Implemented.");
+		}	
+		
+		//function: Modification notification to DSS service for logging the modification counter.
+		public void notifyModification(Course course) {
+			try {
+				getDSSModLog(
+						new DSS().addDept(course.getDept()).addSection(course.getSection()).addSem(course.getSem())
+						);
+				DSSModLogInc(
+						new DSS().addDept(course.getDept()).addSection(course.getSection()).addSem(course.getSem())
+						);
+			}catch(Exception e) {
+					createDSSModLog(
+							new DSS().addDept(course.getDept()).addSection(course.getSection()).addSem(course.getSem())
+							);
+				
+			}
+		}
 }
