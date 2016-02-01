@@ -23,6 +23,7 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 /API/schedule/{dept}/{sem}/{section}							GET			-											APPLICATION_JSON	Get Scheduled Repeatitions List for mentioned dept-sem-section unit.
 /API/schedule/{dept}/{sem}/{section}/{weekDay}		GET			-											APPLICATION_JSON	Get Scheduled Repeatitions List for mentioned dept-sem-section unit for a specific weekDay.
 /API/notify/{dept}/{sem}/{section}								GET			-											APPLICATION_JSON	Get The modification counter for a specific dept,sem & section unit.
+/API/repeatition/{name}														POST		APPLICATION_JSON			APPLICATION_JSON 	Add a list of repeatitions to a specific course.
 
 ##Response Body Formats
 
@@ -145,3 +146,20 @@ Course APPLIATION_JSON BODY FORMAT(for eg,  link : "/API/course" method : PUT):
 				"refBook": "SE - Bilal Saeed",
 				"refBookLink": "google.in"
 			}
+
+excluding a specific API link "/API/repeatition/{name}", where a list of weekDays and lectureNos are provided by the developer to add to a specific course. Mentioned below:
+
+[
+  {
+    "weekDay": 4,
+    "lectureNo": 1
+  },
+  {
+    "weekDay": 4,
+    "lectureNo": 2
+  },
+  {
+    "weekDay": 4,
+    "lectureNo": 3
+  }
+]

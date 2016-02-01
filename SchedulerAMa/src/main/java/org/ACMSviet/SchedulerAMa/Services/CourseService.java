@@ -9,6 +9,7 @@ import org.ACMSviet.SchedulerAMa.Models.DSS;
 import org.ACMSviet.SchedulerAMa.Models.DSSModificationLog;
 import org.ACMSviet.SchedulerAMa.Models.Repeatition;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
+import org.ACMSviet.SchedulerAMa.Models.RepeatitionUnit;
 import org.ACMSviet.SchedulerAMa.Models.ResponseReport;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Example;
@@ -26,13 +27,15 @@ public class CourseService {
 	 * -> Code Update Services. *done*
 	 * -> Code Deletion Services. *done*
 	 * -> Code Repeation adding,updating and deletion services. (also check for no duplicacy of repeatitions in same DSS, different types are excluded) *done*
-	 * -> Create a service for getting all repeatitions(temp type course overlapping the main type course) of a specific DSS. use hibernate EXAMPLE API.
+	 * -> Create a service for getting all repeatitions(temp type course overlapping the main type course) of a specific DSS. use hibernate EXAMPLE API.*done*
 	 * -> Views:
 	 * 	-> filter by class.*done*
 	 * 	-> filter by faculty.*done*
-	 * -> add error control in addingCourse functions.
+	 * -> add error control in addingCourse functions.*done*
 	 * 
-	 * -> error in schedule function, giving duplicate data sets.
+	 * -> error in schedule function, giving duplicate data sets.*done*
+	 * 
+	 * -> create a service to generate course options available for a specific lecture.
 	 */
 
 	@Autowired
@@ -50,21 +53,15 @@ public class CourseService {
 	
 	
 	//function: add course to the data set.
-	public ResponseReport addCourse(Course course) {
-		
-		
+	public ResponseReport addCourse(Course course) {		
 		if(course.getName().isEmpty()||course.getFaculty().isEmpty()||course.getType().isEmpty()||course.getDept().isEmpty()||course.getSem().isEmpty()||course.getSection().isEmpty()) {
 			return new ResponseReport().addStatus(addFailed).addError("Required fields : Name, Faculty, Type, Dept, Sem, Section.");
 		}
 		else if(getCourseByName(course.getName()).getStatus().equals(statusOK)) {
 			return new ResponseReport().addStatus(addFailed).addError("Course Already exists.");
 		}
-			
-		System.out.println(TAG+"Course Add service called for "+ course.getName());
 		this.sessionFactory.getCurrentSession().save(course);
 		notifyModification(course);	
-		
-		
 		return new ResponseReport().addStatus(addOK);
 	}
 	
@@ -141,8 +138,20 @@ public class CourseService {
 	public ResponseReport updateCourse(Course course) {
 		
 		try {
-			List<Course> courses = getCourseByName(course.getName()).getCourses();
-			this.sessionFactory.getCurrentSession().update(courses.get(0).addFaculty(course.getFaculty()));
+			ArrayList<Course> courses = (ArrayList<Course>) getCourseByName(course.getName()).getCourses();
+			if(courses.isEmpty()) {
+				return new ResponseReport().addStatus(updateFailed).addError("No Such Course Found.");}
+			courses.get(0)
+				.addDept(course.getDept())
+				.addDescription(course.getDescription())
+				.addFac_contact(course.getFac_contact())
+				.addFaculty(course.getFaculty())
+				.addRefBook(course.getRefBook())
+				.addSection(course.getSection())
+				.addSem(course.getSem())
+				.addtRefBookLink(course.getRefBookLink())
+				.addType(course.getType());
+			this.sessionFactory.getCurrentSession().update(courses.get(0));
 			notifyModification(course);
 			return new ResponseReport().addStatus(updateOK);
 			
@@ -252,6 +261,10 @@ public class CourseService {
 	
 	//function: Course list filtered by type
 	public CourseListResponse getCourseListByType(String type) {
+		if(!type.equals("main")&&!type.equals("temp")) {
+			return new CourseListResponse().addStatus(statusFailed).addError("Wrong Course Type entered.");
+		}
+		
 		try {
 			ArrayList<Course> courses = (ArrayList<Course>) this.sessionFactory.getCurrentSession().createCriteria(Course.class).add(Restrictions.eq("type", type)).list();
 			if(courses.isEmpty()) {
@@ -364,7 +377,7 @@ public class CourseService {
 		}
 	}
 
-	//function: Get all unique repeatitions of a specific DSS and weekDay(Where temp course overlaps main course).
+		//function: Get all unique repeatitions of a specific DSS and weekDay(Where temp course overlaps main course).
 		//TODO: optimize this function to perform lesser iterations.
 		//TODO: this code crashes if there is no temp or main course individually. FIX THIS.
 		public RepeatitionListResponse getScheduleForDSSWeekDay(String dept,String sem,String section,int weekDay) {
@@ -417,18 +430,46 @@ public class CourseService {
 			}
 		}
 		
+		//function: generate available course options for a specific lecture of a class.
+		public CourseListResponse getCourseOptions(String dept,String sem,String section,int weekDay,int lectureNo) {
+			try {
+				ArrayList<Course> allCourses = (ArrayList<Course>) getAllCourses().getCourses();
+				for(Course course : allCourses){
+					//TODO Add functionality.
+				}
+				
+			}catch(Exception e) {}
+			
+			return null;
+		}
+		
+		public ResponseReport addRepeatitionListToCourseByName(String name,ArrayList<RepeatitionUnit> repeatitions) {
+			for(RepeatitionUnit repeat : repeatitions) {
+			
+				if(addRepeatitions(name, repeat.getWeekDay(), repeat.getLectureNo()).getStatus().equals(addFailed)) {
+					return new ResponseReport().addStatus(addFailed).addError("Repeatition Add error occured.");
+				}
+				
+				
+			}
+			return new ResponseReport().addStatus(addOK);
+			
+		}
+		
 		//DSS services
 		
-		
+		//function: create a new Dept Sem Section modification log unit for every new DSS value.
 		public void createDSSModLog(DSS dss) {
 			this.sessionFactory.getCurrentSession().save(new DSSModificationLog().addModifiedCount(0)
 					.addDss(dss));
 		}
 		
+		//function: get the DSS modification Log foor a specific DSS value.(Primary Key)
 		public DSSModificationLog getDSSModLog(DSS dss) {
 			return (DSSModificationLog) this.sessionFactory.getCurrentSession().get(DSSModificationLog.class, dss);
 		}
 		
+		//function: add new log modification increment for any new change in the specific DSS.
 		public void DSSModLogInc(DSS dss) {
 			DSSModificationLog dssmodlog = (DSSModificationLog) this.sessionFactory.getCurrentSession().get(DSSModificationLog.class, dss);
 			dssmodlog.setModifiedCount(dssmodlog.getModifiedCount()+1);

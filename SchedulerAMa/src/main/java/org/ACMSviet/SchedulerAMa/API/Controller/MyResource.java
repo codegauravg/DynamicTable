@@ -1,10 +1,13 @@
 package org.ACMSviet.SchedulerAMa.API.Controller;
 
+import java.util.ArrayList;
+
 import org.ACMSviet.SchedulerAMa.Models.Course;
 import org.ACMSviet.SchedulerAMa.Models.CourseListResponse;
 import org.ACMSviet.SchedulerAMa.Models.DSS;
 import org.ACMSviet.SchedulerAMa.Models.DSSModificationLog;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
+import org.ACMSviet.SchedulerAMa.Models.RepeatitionUnit;
 import org.ACMSviet.SchedulerAMa.Models.ResponseReport;
 import org.ACMSviet.SchedulerAMa.Services.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,11 @@ public class MyResource {
     /*
      * All fetch Services below.
      */
+	@RequestMapping(value="/API/schedule/{dept}/{sem}/{section}/{weekDay}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public RepeatitionListResponse getScheduleForDSSweekDayService(@PathVariable("dept")String dept,
+			@PathVariable("sem")String sem,@PathVariable("section")String section,@PathVariable("weekDay") int weekDay) {
+		return courseService.getScheduleForDSSWeekDay(dept, sem, section,weekDay);
+	}
 	
 	@RequestMapping(value="/API/notify/{dept}/{sem}/{section}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
 	public DSSModificationLog getModificationLog(@PathVariable("dept")String dept,@PathVariable("sem")String sem,@PathVariable("section")String section) {
@@ -105,7 +113,15 @@ public class MyResource {
 		  @PathVariable("lectureNo")int lectureNo) {
 	  return courseService.addRepeatitions(name, weekDay, lectureNo);
   }
+
+  @RequestMapping(value="/API/repeatition/{name}",method=RequestMethod.POST,
+		  consumes=MediaType.APPLICATION_JSON_VALUE,
+		  produces=MediaType.APPLICATION_JSON_VALUE)
+  public ResponseReport addRepeatitionListByCourseName(@PathVariable("name") String name,@RequestBody ArrayList<RepeatitionUnit> repeatitions) {
+	  return courseService.addRepeatitionListToCourseByName(name, repeatitions);
+  }
     
+
     // Add Services end.
     
     /*
@@ -132,23 +148,12 @@ public class MyResource {
 	//update course..
 	@RequestMapping(value="/API/course/update",method=RequestMethod.POST,consumes=MediaType.APPLICATION_JSON_VALUE,
 	produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseReport updateCourseService(Course course) {
+	public ResponseReport updateCourseService(@RequestBody Course course) {
 		return courseService.updateCourse(course);
 	}
 	
 	
 	
 	//TODO updated in API SERVICE SPECS till this point.
-	
-	@RequestMapping(value="/API/schedule/{dept}/{sem}/{section}/{weekDay}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
-	public RepeatitionListResponse getScheduleForDSSweekDayService(@PathVariable("dept")String dept,
-			@PathVariable("sem")String sem,@PathVariable("section")String section,@PathVariable("weekDay") int weekDay) {
-		return courseService.getScheduleForDSSWeekDay(dept, sem, section,weekDay);
-	}
-	
-
-/*	  return courseService.addCourse(new Course().addName("SE").addDept("CSE").addDescription("SE - Software Engineering").addFac_contact("9501669223")
-			  .addFaculty("Gurpreet Mam").addRefBook("SE - Bilal Saeed").addSection("6X").addSem("6").addtRefBookLink("google.in")
-			  .addType("main")); */
 	
 }
