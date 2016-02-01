@@ -443,13 +443,13 @@ public class CourseService {
 			return null;
 		}
 		
+		//function: Add a list of repeatitions to a specific Course as a bundle.
 		public ResponseReport addRepeatitionListToCourseByName(String name,ArrayList<RepeatitionUnit> repeatitions) {
 			for(RepeatitionUnit repeat : repeatitions) {
 			
 				if(addRepeatitions(name, repeat.getWeekDay(), repeat.getLectureNo()).getStatus().equals(addFailed)) {
 					return new ResponseReport().addStatus(addFailed).addError("Repeatition Add error occured.");
 				}
-				
 				
 			}
 			return new ResponseReport().addStatus(addOK);
