@@ -27,6 +27,13 @@ public class MyResource {
     /*
      * All fetch Services below.
      */
+	
+	@RequestMapping(value="/API/options/{dept}/{sem}/{section}/{weekDay}/{lectureNo}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
+	public CourseListResponse getCourseOptions(@PathVariable("dept") String dept,@PathVariable("sem") String sem,@PathVariable("section") String section
+			,@PathVariable("weekDay") int weekDay,@PathVariable("lectureNo") int lectureNo)	{
+		return courseService.getCourseOptions(dept, sem, section, weekDay, lectureNo);
+	}
+	
 	@RequestMapping(value="/API/schedule/{dept}/{sem}/{section}/{weekDay}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
 	public RepeatitionListResponse getScheduleForDSSweekDayService(@PathVariable("dept")String dept,
 			@PathVariable("sem")String sem,@PathVariable("section")String section,@PathVariable("weekDay") int weekDay) {
@@ -155,5 +162,6 @@ public class MyResource {
 	
 	
 	//TODO updated in API SERVICE SPECS till this point.
+
 	
 }

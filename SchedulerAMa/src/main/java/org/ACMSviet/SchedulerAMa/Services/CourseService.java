@@ -12,7 +12,6 @@ import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionUnit;
 import org.ACMSviet.SchedulerAMa.Models.ResponseReport;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Example;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
+@SuppressWarnings("unchecked")
 public class CourseService {
 	
 	/*
@@ -66,6 +66,7 @@ public class CourseService {
 	}
 	
 	//function: gather full list of courses from the data set.
+	
 	public CourseListResponse getAllCourses() {
 		List<Course> courses = (List<Course>) this.sessionFactory.getCurrentSession().createCriteria(Course.class).list();
 		if(courses.isEmpty()) {
@@ -328,9 +329,9 @@ public class CourseService {
 		}	
 	}
 	
-	//function: Get all unique repeatitions of a specific DSS(Where temp course overlaps main course).
+	//function: Get all unique repetitions of a specific DSS(Where temporary course overlaps main course).
 	//TODO: optimize this function to perform lesser iterations.
-	//TODO: this code crashes if there is no temp or main course individually. FIX THIS.
+	//TODO: this code crashes if there is no temporary or main course individually. FIX THIS.
 	public RepeatitionListResponse getScheduleForDSS(String dept,String sem,String section) {
 		ArrayList<Repeatition> tempRepeatitions = (ArrayList<Repeatition>) getRepeatitionsByCourseType("temp").getRepeatitions();
 		ArrayList<Repeatition> mainRepeatitions = (ArrayList<Repeatition>) getRepeatitionsByCourseType("main").getRepeatitions();
@@ -377,9 +378,9 @@ public class CourseService {
 		}
 	}
 
-		//function: Get all unique repeatitions of a specific DSS and weekDay(Where temp course overlaps main course).
+		//function: Get all unique repetitions of a specific DSS and weekDay(Where temporary course overlaps main course).
 		//TODO: optimize this function to perform lesser iterations.
-		//TODO: this code crashes if there is no temp or main course individually. FIX THIS.
+		//TODO: this code crashes if there is no temporary or main course individually. FIX THIS.
 		public RepeatitionListResponse getScheduleForDSSWeekDay(String dept,String sem,String section,int weekDay) {
 			if(weekDay<1||weekDay>5) {
 				return new RepeatitionListResponse().addStatus(statusFailed).addError("Range for weekDay : 1 - 5");
@@ -432,15 +433,52 @@ public class CourseService {
 		
 		//function: generate available course options for a specific lecture of a class.
 		public CourseListResponse getCourseOptions(String dept,String sem,String section,int weekDay,int lectureNo) {
-			try {
-				ArrayList<Course> allCourses = (ArrayList<Course>) getAllCourses().getCourses();
-				for(Course course : allCourses){
-					//TODO Add functionality.
-				}
-				
-			}catch(Exception e) {}
+			//garbage values handling.
+			if(weekDay<1||weekDay>5||lectureNo<1&&lectureNo>7) {
+				return new CourseListResponse().addStatus(statusFailed).addError("Wrong weekDay or lectureNo inputs.");
+			}
 			
-			return null;
+			RepeatitionListResponse checkList = getScheduleForDSSWeekDay(dept, sem, section, weekDay);
+			
+			if(checkList.getError()==null) {
+				for(Repeatition reps : checkList.getRepeatitions()) {
+					
+					if(reps.getLectureNo()==lectureNo) {
+						return new CourseListResponse().addStatus(statusFailed).addError("This specific lecture is already booked.");
+					}
+				}
+			}
+			
+			//true functionality starts here.
+			try {
+				ArrayList<Course> allCourses = (ArrayList<Course>) findCoursesByDSS(dept, sem, section).getCourses();
+				CourseListResponse resultSet = new CourseListResponse().addCourses(new ArrayList<Course>());
+				for(Course course : allCourses){
+					RepeatitionListResponse repeatitions = getCourseRepeatitions(course.getName());
+					//check whether there is any repetition to the course.
+					if(!repeatitions.getRepeatitions().isEmpty()) {
+						int course_booked = 0;
+						for(Repeatition rep : repeatitions.getRepeatitions()) {
+							//check if the course is repeated twice already that day.
+							if(rep.getWeekDay()==weekDay) {
+								++course_booked;
+							}
+						}
+						if(course_booked<=2) {
+							resultSet.getCourses().add(course);
+						}
+					}
+					//if no repetition available, add the course to the options list.
+					else {
+						resultSet.getCourses().add(course);
+					}
+				}
+				return resultSet.addStatus(statusOK);
+				
+			}catch(Exception e) {
+				//No course fetched.
+				return new CourseListResponse().addStatus(statusFailed).addError("No Courses for specified DSS values.");
+			}
 		}
 		
 		//function: Add a list of repeatitions to a specific Course as a bundle.

@@ -24,6 +24,7 @@ LINK	                                            METHOD	    CONSUMES	        PRO
 /API/schedule/{dept}/{sem}/{section}/{weekDay}		GET			-											APPLICATION_JSON	Get Scheduled Repeatitions List for mentioned dept-sem-section unit for a specific weekDay.
 /API/notify/{dept}/{sem}/{section}								GET			-											APPLICATION_JSON	Get The modification counter for a specific dept,sem & section unit.
 /API/repeatition/{name}														POST		APPLICATION_JSON			APPLICATION_JSON 	Add a list of repeatitions to a specific course.
+/API/options/{dept}/{sem}/{section}/{weekDay}/{lectureNo} GET 	-								APPLICATION_JSON 	get available courses for a specific lecture.
 
 ##Response Body Formats
 
