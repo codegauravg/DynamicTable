@@ -4,16 +4,19 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import javax.persistence.Embedded;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 
 @Entity
 public class AndroidDeviceList implements Serializable {
 
-	@EmbeddedId
+	@Embedded
 	private DSS dss;
 	
-	private HashSet<String> deviceIdList;
+	@Id
+	private String deviceId;
 	
 	public AndroidDeviceList() {}
 
@@ -25,12 +28,12 @@ public class AndroidDeviceList implements Serializable {
 		this.dss = dss;
 	}
 
-	public HashSet<String> getDeviceIdList() {
-		return deviceIdList;
+	public String getDeviceId() {
+		return deviceId;
 	}
 
-	public void setDeviceIdList(HashSet<String> deviceIdList) {
-		this.deviceIdList = deviceIdList;
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
 	}
 	
 	//Chained Methods..
@@ -39,8 +42,8 @@ public class AndroidDeviceList implements Serializable {
 		return this;
 	}
 	
-	public AndroidDeviceList addDeviceIdList(HashSet<String> deviceIdList) {
-		this.deviceIdList = deviceIdList;
+	public AndroidDeviceList addDeviceId(String deviceId) {
+		this.deviceId = deviceId;
 		return this;
 	}
 	

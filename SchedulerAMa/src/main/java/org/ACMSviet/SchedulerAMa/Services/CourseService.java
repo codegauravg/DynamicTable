@@ -506,16 +506,13 @@ public class CourseService {
 			}
 			
 			AndroidDeviceList list = (AndroidDeviceList) this.sessionFactory.getCurrentSession().get(AndroidDeviceList.class,
-					new DSS().addDept(dept).addSection(section).addSem(sem));
+					ID);
 			if(list != null) {
-				list.getDeviceIdList().add(ID);
-				this.sessionFactory.getCurrentSession().update(list);
-				return new ResponseReport().addStatus(addOK);
+				return new ResponseReport().addStatus(addFailed).addError("Device already Registered");
 			}
 			else {
-				HashSet<String> id =  new HashSet<String>();
-				id.add(ID);
-				this.sessionFactory.getCurrentSession().save(new AndroidDeviceList().addDss(new DSS().addDept(dept).addSection(section).addSem(sem)).addDeviceIdList(id));
+				
+				this.sessionFactory.getCurrentSession().save(new AndroidDeviceList().addDss(new DSS().addDept(dept).addSection(section).addSem(sem)).addDeviceId(ID));
 				
 				return new ResponseReport().addStatus(addOK);
 			}
@@ -523,19 +520,20 @@ public class CourseService {
 		
 		//function: to notify all concerned android devices about the change in schedule.
 		public void notifyDevices(Course course) {
-			AndroidDeviceList devices = (AndroidDeviceList) this.sessionFactory.getCurrentSession().get(AndroidDeviceList.class, 
-					new DSS().addDept(course.getDept()).addSection(course.getSection()).addSem(course.getSem())
-					);
+			ArrayList<AndroidDeviceList> devices = (ArrayList<AndroidDeviceList>) this.sessionFactory.getCurrentSession().createCriteria(AndroidDeviceList.class)
+					.add(Restrictions.eq("dss", 
+							new DSS().addDept(course.getDept()).addSection(course.getSection()).addSem(course.getSem())
+					)).list();
 			if(devices != null) {
-				if(!devices.getDeviceIdList().isEmpty()) {
+				
 					Content content = new Content();
-					for(String id : devices.getDeviceIdList()) {
-						content.addRegId(id);
+					for(AndroidDeviceList dev : devices) {
+						content.addRegId(dev.getDeviceId());
 					}
 					content.createData("Schedule Updated", "Somechanges have been made in your Schedule.");
 							
 					System.out.println(Post2Gcm.post("AIzaSyCZeYrZrX6IV_k_M2A_PcPhp8Pu284zFpw", content));
-				}
+				
 			}
 		}
 }
