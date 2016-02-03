@@ -2,14 +2,15 @@ package org.ACMSviet.SchedulerAMa.API.Controller;
 
 import java.util.ArrayList;
 
+import org.ACMSviet.SchedulerAMa.Models.Content;
 import org.ACMSviet.SchedulerAMa.Models.Course;
 import org.ACMSviet.SchedulerAMa.Models.CourseListResponse;
 import org.ACMSviet.SchedulerAMa.Models.DSS;
-import org.ACMSviet.SchedulerAMa.Models.DSSModificationLog;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionUnit;
 import org.ACMSviet.SchedulerAMa.Models.ResponseReport;
 import org.ACMSviet.SchedulerAMa.Services.CourseService;
+import org.ACMSviet.SchedulerAMa.Services.Post2Gcm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 public class MyResource {
@@ -40,10 +42,6 @@ public class MyResource {
 		return courseService.getScheduleForDSSWeekDay(dept, sem, section,weekDay);
 	}
 	
-	@RequestMapping(value="/API/notify/{dept}/{sem}/{section}",method=RequestMethod.GET,produces=MediaType.APPLICATION_JSON_VALUE)
-	public DSSModificationLog getModificationLog(@PathVariable("dept")String dept,@PathVariable("sem")String sem,@PathVariable("section")String section) {
-		return courseService.getDSSModLog(new DSS().addDept(dept).addSection(section).addSem(sem));
-	}
   
   @RequestMapping(value="/API/course",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_VALUE)
   public CourseListResponse getAllCoursesService() {
@@ -127,7 +125,11 @@ public class MyResource {
   public ResponseReport addRepeatitionListByCourseName(@PathVariable("name") String name,@RequestBody ArrayList<RepeatitionUnit> repeatitions) {
 	  return courseService.addRepeatitionListToCourseByName(name, repeatitions);
   }
-    
+	@RequestMapping(value="/API/device/{dept}/{sem}/{section}/{ID}",method=RequestMethod.POST,produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseReport addAndroidDeviceIdService(@PathVariable("dept") String dept,
+			@PathVariable("sem") String sem,@PathVariable("section") String section,@PathVariable("ID") String ID) {
+		return courseService.addAndroidDeviceID(dept, sem, section, ID);
+	}
 
     // Add Services end.
     
@@ -162,6 +164,16 @@ public class MyResource {
 	
 	
 	//TODO updated in API SERVICE SPECS till this point.
+
+	@RequestMapping("/API/doit")
+	public String doit() {
+		Content content = new Content();
+		content.addRegId("APA91bHnfLBmW_2Dm_s24587ImTD_Qsf2ETvhlVGgw8gtTZwH50tVTNJOUPdZAej2bgXQPBj-S19jxwq6H5MxhMKMi5-ifiyijSQ3Cgg6m5_WuGhhifKue8Uc_fPcEBsQqVtgbszvcyKgwhvyyw9by3ePEgSBsI8GA");
+		content.createData("Gcm Gen Title", "Message by gender prediction api.");
+				
+		return Post2Gcm.post("AIzaSyCZeYrZrX6IV_k_M2A_PcPhp8Pu284zFpw", content);
+	}
+	
 
 	
 }

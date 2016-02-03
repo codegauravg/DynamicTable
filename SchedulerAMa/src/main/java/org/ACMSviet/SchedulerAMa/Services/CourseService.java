@@ -1,12 +1,14 @@
 package org.ACMSviet.SchedulerAMa.Services;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
+import org.ACMSviet.SchedulerAMa.Models.AndroidDeviceList;
+import org.ACMSviet.SchedulerAMa.Models.Content;
 import org.ACMSviet.SchedulerAMa.Models.Course;
 import org.ACMSviet.SchedulerAMa.Models.CourseListResponse;
 import org.ACMSviet.SchedulerAMa.Models.DSS;
-import org.ACMSviet.SchedulerAMa.Models.DSSModificationLog;
 import org.ACMSviet.SchedulerAMa.Models.Repeatition;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionListResponse;
 import org.ACMSviet.SchedulerAMa.Models.RepeatitionUnit;
@@ -61,7 +63,7 @@ public class CourseService {
 			return new ResponseReport().addStatus(addFailed).addError("Course Already exists.");
 		}
 		this.sessionFactory.getCurrentSession().save(course);
-		notifyModification(course);	
+		notifyDevices(course);	
 		return new ResponseReport().addStatus(addOK);
 	}
 	
@@ -153,7 +155,7 @@ public class CourseService {
 				.addtRefBookLink(course.getRefBookLink())
 				.addType(course.getType());
 			this.sessionFactory.getCurrentSession().update(courses.get(0));
-			notifyModification(course);
+			notifyDevices(course);
 			return new ResponseReport().addStatus(updateOK);
 			
 		}catch(Exception e) {
@@ -181,7 +183,7 @@ public class CourseService {
 				System.out.println(TAG+"No Repeatitions associated with mentioned course");
 			}
 			this.sessionFactory.getCurrentSession().delete(courses.get(0));
-			notifyModification(courses.get(0));
+			notifyDevices(courses.get(0));
 			return new ResponseReport().addStatus(deleteOK);
 			
 		}catch(Exception e) {
@@ -196,7 +198,7 @@ public class CourseService {
 			ArrayList<Repeatition> repeatitions = (ArrayList<Repeatition>) getCourseRepeatitions(name).getRepeatitions();
 			for(Repeatition rep : repeatitions) {
 				this.sessionFactory.getCurrentSession().delete(rep);
-				notifyModification(rep.getCourse());
+				notifyDevices(rep.getCourse());
 			}
 			
 			return new ResponseReport().addStatus(deleteOK);
@@ -230,13 +232,13 @@ public class CourseService {
 					}
 				}
 				this.sessionFactory.getCurrentSession().save(new Repeatition().addWeekDay(weekDay).addLectureNo(lectureNo).addCourse(course));
-				notifyModification(course);
+				notifyDevices(course);
 				return new ResponseReport().addStatus(updateOK);
 	
 			}
 			else {
 				this.sessionFactory.getCurrentSession().save(new Repeatition().addWeekDay(weekDay).addLectureNo(lectureNo).addCourse(course));
-				notifyModification(course);
+				notifyDevices(course);
 				return new ResponseReport().addStatus(updateOK);
 			}
 		}catch(Exception e) {
@@ -296,7 +298,7 @@ public class CourseService {
 			}
 			
 			this.sessionFactory.getCurrentSession().delete(repeatition);
-			notifyModification(course);
+			notifyDevices(course);
 			return new ResponseReport().addStatus(deleteOK);
 			
 		}catch(Exception e) {
@@ -494,41 +496,46 @@ public class CourseService {
 			
 		}
 		
-		//DSS services
+
 		
-		//function: create a new Dept Sem Section modification log unit for every new DSS value.
-		public void createDSSModLog(DSS dss) {
-			this.sessionFactory.getCurrentSession().save(new DSSModificationLog().addModifiedCount(0)
-					.addDss(dss));
-		}
 		
-		//function: get the DSS modification Log foor a specific DSS value.(Primary Key)
-		public DSSModificationLog getDSSModLog(DSS dss) {
-			return (DSSModificationLog) this.sessionFactory.getCurrentSession().get(DSSModificationLog.class, dss);
-		}
-		
-		//function: add new log modification increment for any new change in the specific DSS.
-		public void DSSModLogInc(DSS dss) {
-			DSSModificationLog dssmodlog = (DSSModificationLog) this.sessionFactory.getCurrentSession().get(DSSModificationLog.class, dss);
-			dssmodlog.setModifiedCount(dssmodlog.getModifiedCount()+1);
-			this.sessionFactory.getCurrentSession().update(dssmodlog);
-			System.out.println(TAG+"DSSModification Increment Implemented.");
-		}	
-		
-		//function: Modification notification to DSS service for logging the modification counter.
-		public void notifyModification(Course course) {
-			try {
-				getDSSModLog(
-						new DSS().addDept(course.getDept()).addSection(course.getSection()).addSem(course.getSem())
-						);
-				DSSModLogInc(
-						new DSS().addDept(course.getDept()).addSection(course.getSection()).addSem(course.getSem())
-						);
-			}catch(Exception e) {
-					createDSSModLog(
-							new DSS().addDept(course.getDept()).addSection(course.getSection()).addSem(course.getSem())
-							);
+		//function: add a new Android device id for GCM functionality.
+		public ResponseReport addAndroidDeviceID(String dept,String sem,String section,String ID) {
+			if(dept.trim().isEmpty()||sem.trim().isEmpty()||section.trim().isEmpty()||ID.trim().isEmpty()) {
+				return new ResponseReport().addStatus(addFailed).addError("Fill the Details properly.");
+			}
+			
+			AndroidDeviceList list = (AndroidDeviceList) this.sessionFactory.getCurrentSession().get(AndroidDeviceList.class,
+					new DSS().addDept(dept).addSection(section).addSem(sem));
+			if(list != null) {
+				list.getDeviceIdList().add(ID);
+				this.sessionFactory.getCurrentSession().update(list);
+				return new ResponseReport().addStatus(addOK);
+			}
+			else {
+				HashSet<String> id =  new HashSet<String>();
+				id.add(ID);
+				this.sessionFactory.getCurrentSession().save(new AndroidDeviceList().addDss(new DSS().addDept(dept).addSection(section).addSem(sem)).addDeviceIdList(id));
 				
+				return new ResponseReport().addStatus(addOK);
+			}
+		}
+		
+		//function: to notify all concerned android devices about the change in schedule.
+		public void notifyDevices(Course course) {
+			AndroidDeviceList devices = (AndroidDeviceList) this.sessionFactory.getCurrentSession().get(AndroidDeviceList.class, 
+					new DSS().addDept(course.getDept()).addSection(course.getSection()).addSem(course.getSem())
+					);
+			if(devices != null) {
+				if(!devices.getDeviceIdList().isEmpty()) {
+					Content content = new Content();
+					for(String id : devices.getDeviceIdList()) {
+						content.addRegId(id);
+					}
+					content.createData("Schedule Updated", "Somechanges have been made in your Schedule.");
+							
+					System.out.println(Post2Gcm.post("AIzaSyCZeYrZrX6IV_k_M2A_PcPhp8Pu284zFpw", content));
+				}
 			}
 		}
 }
