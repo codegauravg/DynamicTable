@@ -2,19 +2,22 @@ package org.acm.sviet.schedulerama;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -25,23 +28,25 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.acm.sviet.schedulerama.adapters.ScheduleAdapter;
+import org.acm.sviet.schedulerama.customViews.NestedListView;
+import org.acm.sviet.schedulerama.login.LoginActivity;
 import org.acm.sviet.schedulerama.models.Course;
 import org.acm.sviet.schedulerama.models.Schedule;
-import org.acm.sviet.schedulerama.customViews.NestedListView;
-import org.acm.sviet.schedulerama.receivers.AlarmReceiver;
-import org.acm.sviet.schedulerama.receivers.SystemBootReceiver;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,17 +55,21 @@ import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 
-public class ScheduleViewActivity extends AppCompatActivity {
+public class ScheduleViewActivity extends AppCompatActivity/*
+        implements NavigationView.OnNavigationItemSelectedListener*/{
 
     /*
     * TODO List:
     * -> convert json object into Schedule Model object.*done*
     * -> beautify the schedule list layout.
     * -> Add a Splash Screen.
-    * -> Create a detail Activity for Course details as a course is clicked in Schedule listView.
-    * -> create  an Broadcast Service to check for any changes in the schedule of mentioned DSS value.
     * -> fill the options menu
+    * -> there is a problem in navigation drawer, giving error in my mi3, not in emulated device. find it. fix it.
     * */
+
+    GoogleCloudMessaging gcm;
+    String regId,PROJECT_NO="846898771125";
+
     // Whether there is a Wi-Fi connection.
     private static boolean wifiConnected = false;
     // Whether there is a mobile connection.
@@ -101,6 +110,7 @@ public class ScheduleViewActivity extends AppCompatActivity {
         preferences = getSharedPreferences("dept_sem_sec_values", MODE_PRIVATE);
         editor = preferences.edit();
         schList = (NestedListView) findViewById(R.id.list_view_schedule);
+
 
         deptSpinner = (Spinner) findViewById(R.id.deptSpinner);
         semSpinner = (Spinner) findViewById(R.id.semSpinner);
@@ -194,8 +204,6 @@ public class ScheduleViewActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Schedule schedule = schduleData.get(position);
-                Toast.makeText(getApplicationContext(), schedule.getCourse().getName() + " Course selected", Toast.LENGTH_LONG).show();
-
                 Intent intent = new Intent(ScheduleViewActivity.this, CourseDetailActivity.class);
                 intent.putExtra("schedule", new Gson().toJson(schedule));
                 startActivity(intent);
@@ -203,6 +211,15 @@ public class ScheduleViewActivity extends AppCompatActivity {
 
             }
         });
+        //basic toggle setup for navigation drawer
+        /*DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);*/
 
         //initialing the default Shared Preference gathering.
         defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -210,7 +227,27 @@ public class ScheduleViewActivity extends AppCompatActivity {
         //if DSS is already assigned, using Shared Preferences, auto click the fab button to gather schedule.
         autoFetchSchedules();
 
+        Button loginButton = (Button) findViewById(R.id.hodLoginButton);
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(ScheduleViewActivity.this,LoginActivity.class));
+            }
+        });
+
     }
+
+/*
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -219,6 +256,33 @@ public class ScheduleViewActivity extends AppCompatActivity {
         return true;
     }
 
+ /*   @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_login) {
+            startActivity(new Intent(ScheduleViewActivity.this, LoginActivity.class));
+        } else if (id == R.id.nav_gitfork) {
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://github.com/codegauravg/DynamicTable/"));
+            startActivity(intent);
+        } else if (id == R.id.nav_api) {
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("http://schedulerama-svietacm.rhcloud.com"));
+            startActivity(intent);
+        } else if (id == R.id.nav_about) {
+
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse(getResources().getString(R.string.web_add)));
+            startActivity(intent);
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+*/
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -243,6 +307,7 @@ public class ScheduleViewActivity extends AppCompatActivity {
         }
         //server side consider weekDay value for monday to be 1, and incremented so on.
         fab.callOnClick();
+        getRegID();
         appbarLayout.setExpanded(false);
 
     }
@@ -250,45 +315,10 @@ public class ScheduleViewActivity extends AppCompatActivity {
     //function: fetch Schedule from the cloud and fill it in the listView.
     private void fetchSchedules(String dept, String sem, String section, int weekDay) {
 
-        //creating an Background Service under alarm Receiver to manage pending Broadcast intent of BackgroundService.
+        //if to enable GCM intent gathering or not.
+        //TODO : find the implementations for this.
         boolean broadcast_bool = defaultSharedPreferences.getBoolean("broadcast_switch",false);
-        if(broadcast_bool) {
-            this.context = this;
-            Intent alarm = new Intent(this.context, AlarmReceiver.class);
-            boolean alarmRunning = (PendingIntent.getBroadcast(this.context, 0, alarm, PendingIntent.FLAG_NO_CREATE) != null);
-            if (!alarmRunning) {
-                Log.i(TAG,"Pending Intent Added - "+AlarmReceiver.class.getName());
-                pendingIntent = PendingIntent.getBroadcast(this.context, 0, alarm, 0);
-                alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), 1000 * 30, pendingIntent);
 
-            }
-
-            //enable SystemBootReceiver.
-            ComponentName receiver = new ComponentName(context, SystemBootReceiver.class);
-            PackageManager pm = context.getPackageManager();
-
-            pm.setComponentEnabledSetting(receiver,
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                    PackageManager.DONT_KILL_APP);
-        }
-        else{
-            this.context = this;
-            Intent alarm = new Intent(this.context, AlarmReceiver.class);
-            pendingIntent = PendingIntent.getBroadcast(this.context, 0, alarm, 0);
-            alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            alarmManager.cancel(pendingIntent);
-            Log.i(TAG, "Pending Intent canceled - " + AlarmReceiver.class.getName());
-
-            //enable SystemBootReceiver.
-            ComponentName receiver = new ComponentName(context, SystemBootReceiver.class);
-            PackageManager pm = context.getPackageManager();
-
-            pm.setComponentEnabledSetting(receiver,
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP);
-
-        }
 
          //Connect to server, and get Schedule for today..
         final AsyncHttpClient client = new AsyncHttpClient();
@@ -411,6 +441,103 @@ public class ScheduleViewActivity extends AppCompatActivity {
             return false;
         }
         // END_INCLUDE(connect)
+    }
+
+    //function: to gather the regId of  google play service for devices.
+    private void getRegID(){
+        new AsyncTask<Void,Void,String>(){
+
+            @Override
+            protected String doInBackground(Void... params) {
+                try{
+                    if(gcm==null){
+                        gcm = GoogleCloudMessaging.getInstance(getApplicationContext());
+                    }
+                    regId = gcm.register(PROJECT_NO);
+                    Log.e(TAG,regId);
+                    return regId;
+                }catch(IOException ioe){
+                   Log.e(TAG,"error message : "+ioe.getMessage());
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                if(s==null){return;}
+                SharedPreferences IDpreferences = getSharedPreferences("device_id_pref",Context.MODE_PRIVATE);
+                boolean device_state = IDpreferences.getBoolean("device_state",false);
+                if(!device_state){ uploadID(s);
+                }
+
+            }
+        }.execute(null, null, null);
+    }
+
+    //function: add the device ID to the server.
+    private void uploadID(String ID){
+        if (deptSpinner.getSelectedItemPosition() == 0 || semSpinner.getSelectedItemPosition() == 0 || sectionSpinner.getSelectedItemPosition() == 0) {
+            return;
+        }
+
+        String dept = (String) deptSpinner.getSelectedItem();
+        String sem = (String) semSpinner.getSelectedItem();
+        String section=(String) sectionSpinner.getSelectedItem();
+        final AsyncHttpClient client = new AsyncHttpClient();
+
+        client.post("http://schedulerama-svietacm.rhcloud.com/API/device/" +
+                dept + "/" + sem + "/" + section + "/" + ID, null, new AsyncHttpResponseHandler() {
+
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
+                Log.v(TAG, "Successfull Response Gathering.");
+
+                try {
+                    String response = new String(responseBody, "UTF-8");
+
+                    JSONObject obj = new JSONObject(response);
+                    String err = obj.getString("error");
+                    String status = obj.getString("status");
+
+                    if (!status.equals("ADD OK")) {
+                        //error
+                        Log.e(TAG, "Server Error : " + err);
+                        Toast.makeText(getApplication(), err, Toast.LENGTH_LONG).show();
+                    } else {
+                        SharedPreferences IDpreferences = getSharedPreferences("device_id_pref", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = IDpreferences.edit();
+                        editor.putBoolean("device_state", true).apply();
+                    }
+
+                } catch (UnsupportedEncodingException e) {
+
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.v(TAG, "Unsuccessful Response Gathering.");
+
+                // When Http response code is '404'
+                if (statusCode == 404) {
+                    Toast.makeText(getApplicationContext(), "Requested resource not found", Toast.LENGTH_LONG).show();
+                }
+                // When Http response code is '500'
+                else if (statusCode == 500) {
+                    Toast.makeText(getApplicationContext(), "Something went wrong at server end", Toast.LENGTH_LONG).show();
+                }
+                // When Http response code other than 404, 500
+                else {
+                    Toast.makeText(getApplicationContext(), "Unexpected Error occurred! [Most common Error: Device might not be connected to Internet or remote server is not up and running]", Toast.LENGTH_LONG).show();
+                }
+
+            }
+        });
     }
 
 }
