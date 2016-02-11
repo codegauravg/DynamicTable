@@ -7,17 +7,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -39,7 +35,7 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.acm.sviet.schedulerama.adapters.ScheduleAdapter;
 import org.acm.sviet.schedulerama.customViews.NestedListView;
-import org.acm.sviet.schedulerama.login.LoginActivity;
+import org.acm.sviet.schedulerama.hod.LoginActivity;
 import org.acm.sviet.schedulerama.models.Course;
 import org.acm.sviet.schedulerama.models.Schedule;
 import org.json.JSONArray;
@@ -196,6 +192,7 @@ public class ScheduleViewActivity extends AppCompatActivity/*
                 fab.startAnimation(fab_rot);
 
                 fetchSchedules((String) deptSpinner.getSelectedItem(), (String) semSpinner.getSelectedItem(), (String) sectionSpinner.getSelectedItem(), day);
+
             }
         });
 
@@ -248,6 +245,27 @@ public class ScheduleViewActivity extends AppCompatActivity/*
         }
     }
 */
+
+    private boolean exit = false;
+    @Override
+    //to create the effect of twice back pressed exit options.
+    public void onBackPressed() {
+
+        if (exit) {
+            finish(); // finish activity
+        } else {
+            Toast.makeText(this, "Press Back again to Exit.",
+                    Toast.LENGTH_SHORT).show();
+            exit = true;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    exit = false;
+                }
+            }, 3 * 1000);
+
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

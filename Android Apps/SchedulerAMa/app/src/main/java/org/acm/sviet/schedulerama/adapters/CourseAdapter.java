@@ -3,29 +3,33 @@ package org.acm.sviet.schedulerama.adapters;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import org.acm.sviet.schedulerama.CourseEditActivity;
 import org.acm.sviet.schedulerama.R;
-import org.acm.sviet.schedulerama.hod.CourseViewActivity;
+import org.acm.sviet.schedulerama.hod.CourseEditActivity;
+import org.acm.sviet.schedulerama.interfaces.Refresh;
 import org.acm.sviet.schedulerama.models.Course;
+import org.acm.sviet.schedulerama.utility.ApiUtil;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Anurag on 08-02-2016.
+ *
+ * Custom adapter for Course model to course item list layout.
  */
 public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.ViewHolder>{
     private static String TAG = "/CourseAdapter";
-    protected ArrayList<Course> courseList;
-    private Context context;
+    protected final ArrayList<Course> courseList;
+    private final Context context;
+    private final Refresh refresh;
 
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -33,6 +37,7 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.ViewHolder
         private final TextView courseListDeptTextView;
         private final TextView courseListSemTextView;
         private final TextView courseListSectionTextView;
+        private final TextView deleteCourseTextView;
 
 
         public ViewHolder(View v){
@@ -40,9 +45,9 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.ViewHolder
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(context,CourseEditActivity.class);
-                    intent.putExtra("purpose","update");
-                    intent.putExtra("course",new Gson().toJson(courseList.get(getAdapterPosition())));
+                    Intent intent = new Intent(context, CourseEditActivity.class);
+                    intent.putExtra("purpose", "update");
+                    intent.putExtra("course", new Gson().toJson(courseList.get(getAdapterPosition())));
                     context.startActivity(intent);
                 }
             });
@@ -50,6 +55,17 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.ViewHolder
             courseListDeptTextView = (TextView) v.findViewById(R.id.courseListDeptTextView);
             courseListSemTextView = (TextView) v.findViewById(R.id.courseListSemTextView);
             courseListSectionTextView = (TextView) v.findViewById(R.id.courseListSectionTextView);
+            deleteCourseTextView = (TextView) v.findViewById(R.id.deleteCourseTextView);
+            deleteCourseTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        ApiUtil.sync(context, refresh,ApiUtil.TASK.DELETE_COURSE,courseList.get(getAdapterPosition()));
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
         //view getters.
         public TextView getCourseListNameTextView() {
@@ -71,9 +87,10 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.ViewHolder
 
     }
 
-    public CourseAdapter(Context context,ArrayList<Course> courses){
+    public CourseAdapter(Context context,Refresh refresh,ArrayList<Course> courses){
         this.courseList = courses;
         this.context = context;
+        this.refresh = refresh;
     }
 
     @Override

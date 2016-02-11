@@ -62,14 +62,14 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login" />
-        <activity android:name=".login.LoginActivity" />
+        <activity android:name=".hod.LoginActivity" />
         <activity
-            android:name=".CourseEditActivity"
+            android:name=".hod.CourseEditActivity"
             android:label="@string/title_activity_course_edit"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".hod.CourseViewActivity"
-            android:label="@string/title_activity_course_view"
+            android:name=".hod.HodHomeActivity"
+            android:label="@string/title_activity_hod_home"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 

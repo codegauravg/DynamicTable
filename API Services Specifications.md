@@ -1,6 +1,6 @@
 #API SERVICE LINKS DETAILS
 
-Below is the list of all services provided by th SchedulerAMa RESTfull API with all the required specifications for that service
+Below is the list of all services provided by the SchedulerAMa RESTfull API with all the required specifications for that service
 
 
 LINK	                                            METHOD	    CONSUMES	        PRODUCES	        DESCPRITION

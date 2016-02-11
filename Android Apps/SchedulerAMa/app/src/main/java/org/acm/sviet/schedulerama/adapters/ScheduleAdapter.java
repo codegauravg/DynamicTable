@@ -9,8 +9,8 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import org.acm.sviet.schedulerama.BuildConfig;
-import org.acm.sviet.schedulerama.models.Schedule;
 import org.acm.sviet.schedulerama.R;
+import org.acm.sviet.schedulerama.models.Schedule;
 
 import java.util.Collections;
 import java.util.List;
