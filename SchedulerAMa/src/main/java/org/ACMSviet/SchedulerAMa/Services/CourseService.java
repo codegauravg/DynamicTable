@@ -456,7 +456,10 @@ public class CourseService {
 				ArrayList<Course> allCourses = (ArrayList<Course>) findCoursesByDSS(dept, sem, section).getCourses();
 				CourseListResponse resultSet = new CourseListResponse().addCourses(new ArrayList<Course>());
 				for(Course course : allCourses){
-					RepeatitionListResponse repeatitions = getCourseRepeatitions(course.getName());
+					RepeatitionListResponse repeatitions = new RepeatitionListResponse();
+					try {
+						repeatitions = getCourseRepeatitions(course.getName());
+					
 					//check whether there is any repetition to the course.
 					if(!repeatitions.getRepeatitions().isEmpty()) {
 						int course_booked = 0;
@@ -472,6 +475,9 @@ public class CourseService {
 					}
 					//if no repetition available, add the course to the options list.
 					else {
+						resultSet.getCourses().add(course);
+					}
+					}catch(Exception e) {
 						resultSet.getCourses().add(course);
 					}
 				}
