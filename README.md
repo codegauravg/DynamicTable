@@ -8,15 +8,19 @@ A dynamically designed and programmed web based time table application to manage
 3.  Modifications of classes on single click.
 4.  Algorithm to judge for providing arrangement periods.
 5.  Switching of lectures on single tap.
-6.  Even deletion will be simplified as the app will automatically allocate the deleted lecture with an arrangement.
 
-####Users:
+####Future Plans
+1.  Even deletion will be simplified as the app will automatically allocate the deleted lecture with an arrangement.
+2.  support background cross check over conflicting lectures.
+3.  and many more....
+
+####Users: (Views for Android Mobile Application)
 1.  Administrator View
 2.  Head Of Department View
 3.  Students View
 
-####Tools, Language and Database to be used initially:
-1.  Web Service is on the cloud, developed using Eclipse Spring Tool Suite IDE.
+####Tools, Language and Database to be used:
+1.  Web Service is to be on the cloud, developed using Eclipse Spring Tool Suite IDE.
 2.  Android Application to call the service is created on Android Studio.
 3.  Web Application implementation is still under construction.
 4.  MySQL databasing is used for quick response time and handled by admin using PhpAdmin.
